@@ -1,19 +1,19 @@
 import type { Metadata } from "next";
-import { DM_Sans, DM_Serif_Display } from "next/font/google";
+import { Playfair_Display, Space_Mono } from "next/font/google";
 import "./globals.css";
 
-const dmSans = DM_Sans({
+const playfair = Playfair_Display({
   subsets: ["latin"],
-  variable: "--font-dm-sans",
-  weight: ["200", "300", "400"],
+  variable: "--font-playfair",
+  weight: ["400", "500", "600", "700", "800", "900"],
+  style: ["normal", "italic"],
   display: "swap",
 });
 
-const dmSerif = DM_Serif_Display({
+const spaceMono = Space_Mono({
   subsets: ["latin"],
-  variable: "--font-dm-serif",
-  weight: ["400"],
-  style: ["normal", "italic"],
+  variable: "--font-space-mono",
+  weight: ["400", "700"],
   display: "swap",
 });
 
@@ -28,7 +28,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="de" className={`${dmSans.variable} ${dmSerif.variable}`}>
+    <html lang="de" className={`${playfair.variable} ${spaceMono.variable}`}>
       <body>{children}</body>
     </html>
   );
