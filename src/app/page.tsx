@@ -27,12 +27,14 @@ const ImperfectCircle = ({ size = 60, stroke = 2, path = 0, color = INK, style =
   </svg>
 );
 
-const FloatingCircle = ({ size, opacity, delay, duration, path, style }: { size: number; opacity: number; delay: number; duration: number; path: number; style: any }) => (
+const FloatingCircle = ({ size, opacity, delay, duration, path, style, parallaxOffset = 0 }: { size: number; opacity: number; delay: number; duration: number; path: number; style: any; parallaxOffset?: number }) => (
   <div style={{
     position: "absolute",
     opacity,
     animation: `float ${duration}s ease-in-out infinite`,
     animationDelay: `${delay}s`,
+    transform: `translateY(${parallaxOffset}px)`,
+    transition: `transform 0.1s ease-out`,
     ...style,
   }}>
     <ImperfectCircle size={size} stroke={1.5} path={path} color={INK} />
@@ -44,17 +46,19 @@ export default function ClubSchorle() {
   const [bookingEvent, setBookingEvent] = useState<typeof events[0] | null>(null);
   const [formData, setFormData] = useState({ name: "", email: "", guests: "1" });
   const [submitted, setSubmitted] = useState(false);
+  const [scrollY, setScrollY] = useState(0);
   const dotRef = useRef<HTMLDivElement>(null);
   const ringRef = useRef<HTMLDivElement>(null);
   const mouseRef = useRef({ x: 0, y: 0 });
+  const heroRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     let raf: number, rx = 0, ry = 0;
     const onMove = (e: MouseEvent) => { mouseRef.current = { x: e.clientX, y: e.clientY }; };
     window.addEventListener("mousemove", onMove);
     const tick = () => {
-      rx += (mouseRef.current.x - rx) * 0.15;
-      ry += (mouseRef.current.y - ry) * 0.15;
+      rx += (mouseRef.current.x - rx) * 0.12;
+      ry += (mouseRef.current.y - ry) * 0.12;
       if (dotRef.current) { dotRef.current.style.left = mouseRef.current.x + "px"; dotRef.current.style.top = mouseRef.current.y + "px"; }
       if (ringRef.current) { ringRef.current.style.left = rx + "px"; ringRef.current.style.top = ry + "px"; }
       raf = requestAnimationFrame(tick);
@@ -63,14 +67,20 @@ export default function ClubSchorle() {
     return () => { window.removeEventListener("mousemove", onMove); cancelAnimationFrame(raf); };
   }, []);
 
+  useEffect(() => {
+    const onScroll = () => { setScrollY(window.scrollY); };
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
   const handleBook = (event: typeof events[0]) => { setBookingEvent(event); setBookingOpen(true); setSubmitted(false); setFormData({ name: "", email: "", guests: "1" }); };
   const handleSubmit = () => { if (formData.name && formData.email) setSubmitted(true); };
 
   return (
     <div style={{ background: CREAM, minHeight: "100vh", color: INK, cursor: "none", overflowX: "hidden" }}>
       {/* Cursor */}
-      <div ref={dotRef} style={{ position:"fixed", width:8, height:8, background:RED, borderRadius:"50%", transform:"translate(-50%,-50%)", pointerEvents:"none", zIndex:9999, mixBlendMode:"multiply" }} />
-      <div ref={ringRef} style={{ position:"fixed", width:34, height:34, border:`1.5px solid ${INK}`, borderRadius:"50%", transform:"translate(-50%,-50%)", pointerEvents:"none", zIndex:9998, opacity:0.3 }} />
+      <div ref={dotRef} style={{ position:"fixed", width:8, height:8, background:RED, borderRadius:"50%", transform:"translate(-50%,-50%)", pointerEvents:"none", zIndex:9999, mixBlendMode:"multiply", animation: "cursorGlow 2.5s ease-in-out infinite" }} />
+      <div ref={ringRef} style={{ position:"fixed", width:34, height:34, border:`1.5px solid ${INK}`, borderRadius:"50%", transform:"translate(-50%,-50%)", pointerEvents:"none", zIndex:9998, opacity:0.25 }} />
 
       {/* NAV */}
       <nav style={{ position:"fixed", top:0, left:0, right:0, zIndex:100, padding:"22px 48px", display:"flex", justifyContent:"space-between", alignItems:"center", background:`rgba(240,235,225,0.9)`, backdropFilter:"blur(20px)", borderBottom:`1px solid rgba(13,12,10,0.06)` }}>
@@ -85,27 +95,27 @@ export default function ClubSchorle() {
       </nav>
 
       {/* HERO */}
-      <section style={{ minHeight:"100vh", position:"relative", overflow:"hidden", display:"flex", alignItems:"flex-end", padding:"0 48px 80px", paddingTop:80 }}>
-        {/* Floating background circles */}
-        <FloatingCircle size={700} opacity={0.08} delay={0} duration={28} path={0} style={{ top: "-10%", right: "-15%", pointerEvents: "none" }} />
-        <FloatingCircle size={600} opacity={0.06} delay={2} duration={32} path={1} style={{ bottom: "-18%", left: "-12%", pointerEvents: "none" }} />
-        <FloatingCircle size={750} opacity={0.1} delay={1} duration={30} path={2} style={{ top: "20%", right: "-18%", pointerEvents: "none" }} />
-        <FloatingCircle size={550} opacity={0.07} delay={3} duration={26} path={0} style={{ bottom: "15%", left: "8%", pointerEvents: "none" }} />
-        <FloatingCircle size={680} opacity={0.09} delay={1.5} duration={34} path={1} style={{ top: "50%", right: "0%", transform: "translateY(-50%)", pointerEvents: "none" }} />
+      <section ref={heroRef} style={{ minHeight:"100vh", position:"relative", overflow:"hidden", display:"flex", alignItems:"flex-end", padding:"0 48px 80px", paddingTop:80 }}>
+        {/* Floating background circles with parallax */}
+        <FloatingCircle size={700} opacity={0.08} delay={0} duration={28} path={0} parallaxOffset={scrollY * 0.15} style={{ top: "-10%", right: "-15%", pointerEvents: "none" }} />
+        <FloatingCircle size={600} opacity={0.06} delay={2} duration={32} path={1} parallaxOffset={scrollY * 0.08} style={{ bottom: "-18%", left: "-12%", pointerEvents: "none" }} />
+        <FloatingCircle size={750} opacity={0.1} delay={1} duration={30} path={2} parallaxOffset={scrollY * 0.12} style={{ top: "20%", right: "-18%", pointerEvents: "none" }} />
+        <FloatingCircle size={550} opacity={0.07} delay={3} duration={26} path={0} parallaxOffset={scrollY * 0.1} style={{ bottom: "15%", left: "8%", pointerEvents: "none" }} />
+        <FloatingCircle size={680} opacity={0.09} delay={1.5} duration={34} path={1} parallaxOffset={scrollY * 0.18} style={{ top: "50%", right: "0%", transform: `translateY(calc(-50% + ${scrollY * 0.18}px))`, pointerEvents: "none" }} />
 
         {/* Grain */}
         <div style={{ position:"absolute", inset:0, zIndex:2, pointerEvents:"none", opacity:0.025, backgroundImage:`url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")` }} />
 
         {/* Text */}
-        <div style={{ position:"relative", zIndex:3, animation:"fadeUp 1s ease forwards", maxWidth:1000 }}>
-          <div style={{ fontFamily:"var(--font-dm-sans), sans-serif", fontSize:9, letterSpacing:"0.28em", color:RED, textTransform:"uppercase", marginBottom:36, display:"flex", alignItems:"center", gap:12 }}>
+        <div style={{ position:"relative", zIndex:3, maxWidth:1000 }}>
+          <div style={{ fontFamily:"var(--font-dm-sans), sans-serif", fontSize:9, letterSpacing:"0.28em", color:RED, textTransform:"uppercase", marginBottom:36, display:"flex", alignItems:"center", gap:12, animation:"heroFadeIn 1.2s ease forwards", opacity: Math.max(0, 1 - scrollY / 300) }}>
             <div style={{ width:24, height:1, background:RED }} />
             München · Artsy Food Events
           </div>
 
           <h1 style={{ fontFamily:"var(--font-dm-sans), sans-serif", fontSize:"clamp(80px, 14vw, 200px)", fontWeight:200, letterSpacing:"-0.025em", lineHeight:0.86, color:INK, mixBlendMode:"multiply" }}>
-            <div>CLUB</div>
-            <div style={{ display:"flex", alignItems:"center" }}>
+            <div style={{ animation:"heroLineSlideUp 0.8s ease forwards" }}>CLUB</div>
+            <div style={{ display:"flex", alignItems:"center", animation:"heroLineSlideUp 0.8s ease forwards 0.15s both" }}>
               SCH
               <span style={{ position:"relative", display:"inline-flex", alignItems:"center", justifyContent:"center" }}>
                 <svg style={{ position:"absolute", width:"1em", height:"1em", top:0, left:0 }} viewBox="0 0 100 100" fill="none">
@@ -117,7 +127,7 @@ export default function ClubSchorle() {
             </div>
           </h1>
 
-          <div style={{ marginTop:48, display:"flex", gap:48, alignItems:"center", flexWrap:"wrap" }}>
+          <div style={{ marginTop:48, display:"flex", gap:48, alignItems:"center", flexWrap:"wrap", animation:"heroFadeIn 1s ease forwards 0.3s both" }}>
             <p style={{ fontFamily:"var(--font-dm-serif), serif", fontStyle:"italic", fontSize:"clamp(16px,1.8vw,22px)", color:MUTED, maxWidth:380, lineHeight:1.75 }}>
               Intimate food experiences for the curious, the hungry, and the slightly weird.
             </p>
@@ -128,7 +138,7 @@ export default function ClubSchorle() {
           </div>
         </div>
 
-        <div style={{ position:"absolute", bottom:40, right:48, zIndex:3, display:"flex", flexDirection:"column", alignItems:"center", gap:10, opacity:0.25 }}>
+        <div style={{ position:"absolute", bottom:40, right:48, zIndex:3, display:"flex", flexDirection:"column", alignItems:"center", gap:10, opacity: Math.max(0, 0.25 - scrollY / 400), transition:"opacity 0.3s ease" }}>
           <div style={{ fontFamily:"var(--font-dm-sans), sans-serif", fontSize:9, letterSpacing:"0.25em", writingMode:"vertical-rl", color:INK }}>SCROLL</div>
           <div style={{ width:1, height:48, background:INK }} />
         </div>

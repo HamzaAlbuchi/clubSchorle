@@ -44,6 +44,22 @@ body {
   50% { transform: translateY(-50px); }
 }
 
+@keyframes heroLineSlideUp {
+  from { opacity: 0; transform: translateY(40px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes heroFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes cursorGlow {
+  0% { box-shadow: 0 0 8px rgba(232, 35, 10, 0.4); }
+  50% { box-shadow: 0 0 16px rgba(232, 35, 10, 0.6); }
+  100% { box-shadow: 0 0 8px rgba(232, 35, 10, 0.4); }
+}
+
 .event-row {
   border-bottom: 1px solid rgba(13, 12, 10, 0.1);
   padding: 36px 0;
