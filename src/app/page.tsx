@@ -28,7 +28,7 @@ const ImperfectCircle = ({ size = 60, stroke = 2, path = 0, color = DARK_BROWN, 
   </svg>
 );
 
-const BlobShape = ({ size, color, delay, duration }: { size: number; color: string; delay: number; duration: number }) => (
+const BlobShape = ({ size, color, delay, duration, top, left }: { size: number; color: string; delay: number; duration: number; top: string; left: string }) => (
   <div style={{
     position: "absolute",
     width: size,
@@ -40,6 +40,8 @@ const BlobShape = ({ size, color, delay, duration }: { size: number; color: stri
     animationDelay: `${delay}s`,
     pointerEvents: "none",
     filter: "blur(2px)",
+    top,
+    left,
   }} />
 );
 
@@ -105,9 +107,9 @@ export default function ClubSchorle() {
       {/* HERO */}
       <section style={{ minHeight:"100vh", position:"relative", overflow:"hidden", display:"flex", alignItems:"center", justifyContent:"flex-start", padding:"0 48px", paddingTop:80 }}>
         {/* Blobs */}
-        <BlobShape size={500} color={ORANGE} delay={0} duration={35} />
-        <BlobShape size={400} color={GREEN} delay={2} duration={42} />
-        <BlobShape size={450} color={YELLOW} delay={1} duration={38} />
+        <BlobShape size={500} color={ORANGE} delay={0} duration={35} top="5%" left="-8%" />
+        <BlobShape size={400} color={GREEN} delay={2} duration={42} top="35%" left="60%" />
+        <BlobShape size={450} color={YELLOW} delay={1} duration={38} top="55%" left="10%" />
 
         {/* Floating Emojis */}
         <FloatingEmoji emoji="🥂" size={48} top="10%" left="15%" delay={0} duration={6} />
