@@ -125,8 +125,8 @@ export default function ClubSchorle() {
           </h1>
           <h1 style={{ fontFamily:"var(--font-playfair), serif", fontSize:"clamp(100px, 16vw, 220px)", fontWeight:900, letterSpacing:"-0.02em", lineHeight:0.95, color:DARK_BROWN, display:"flex", alignItems:"center", gap:16 }}>
             SCH
-            <span style={{ position:"relative", display:"inline-flex", alignItems:"center", justifyContent:"center", width:"1em", height:"1em" }}>
-              <ImperfectCircle size={120} stroke={3} path={1} color={DARK_BROWN} />
+            <span style={{ position:"relative", display:"inline-flex", alignItems:"center", justifyContent:"center", width:"1.15em", height:"1.15em" }}>
+              <ImperfectCircle size={240} stroke={3.5} path={1} color={DARK_BROWN} />
             </span>
             RLE
           </h1>
