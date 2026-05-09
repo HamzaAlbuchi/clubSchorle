@@ -42,6 +42,40 @@ function getFirstInkRowFromImage(img: HTMLImageElement): number {
   return 0
 }
 
+/** First column (from left) containing ink — pairs C/S vertical stems on stacked mobile lockup. */
+function getFirstInkColumnFromImage(img: HTMLImageElement): number {
+  const w = img.naturalWidth
+  const h = img.naturalHeight
+  if (w < 2 || h < 2) return 0
+
+  const canvas = document.createElement('canvas')
+  canvas.width = w
+  canvas.height = h
+  const ctx = canvas.getContext('2d', { willReadFrequently: true })
+  if (!ctx) return 0
+
+  try {
+    ctx.drawImage(img, 0, 0)
+    const { data } = ctx.getImageData(0, 0, w, h)
+    const yStride = Math.max(1, Math.floor(h / 500))
+    for (let x = 0; x < w; x++) {
+      for (let y = 0; y < h; y += yStride) {
+        const i = (y * w + x) * 4
+        const r = data[i]
+        const g = data[i + 1]
+        const b = data[i + 2]
+        const a = data[i + 3]
+        const dark = r + g + b < 520
+        if (a > 42 && dark) return x
+        if (a > 220 && dark) return x
+      }
+    }
+  } catch {
+    return 0
+  }
+  return 0
+}
+
 function introEndDistancePx(mobile: boolean) {
   return mobile
     ? Math.min(window.innerHeight * 1.14, 1080)
@@ -122,22 +156,25 @@ export function SplitWordmarkLayout({
       return () => {
         document.documentElement.style.removeProperty('--home-intro-decor-opacity')
         shell.style.removeProperty('--sch-baseline-nudge')
+        shell.style.removeProperty('--sch-left-nudge')
       }
     }
 
     const imgLeft = () => leftShift.querySelector('img')
     const imgRight = () => rightShift.querySelector('img')
 
-    /** Align SCHORLE so first ink row (cap of S) meets CLUB's first ink row (cap of C). */
-    const syncCapAlignmentFromInk = () => {
+    /** Cap line Y everywhere; mobile also aligns first ink column (C/S left stem stack). */
+    const syncInkAlignmentVars = (forMobileLayout: boolean) => {
       const lImg = imgLeft()
       const rImg = imgRight()
       if (!(lImg instanceof HTMLImageElement) || !(rImg instanceof HTMLImageElement)) {
         shell.style.setProperty('--sch-baseline-nudge', '0px')
+        shell.style.setProperty('--sch-left-nudge', '0px')
         return
       }
       if (lImg.naturalWidth < 2 || rImg.naturalWidth < 2) {
         shell.style.setProperty('--sch-baseline-nudge', '0px')
+        shell.style.setProperty('--sch-left-nudge', '0px')
         return
       }
 
@@ -148,13 +185,26 @@ export function SplitWordmarkLayout({
       const capScreenYClub = lr.top + (rowL / lImg.naturalHeight) * lr.height
       const capScreenYSchorle = rr.top + (rowR / rImg.naturalHeight) * rr.height
       shell.style.setProperty('--sch-baseline-nudge', `${capScreenYClub - capScreenYSchorle}px`)
+
+      if (forMobileLayout) {
+        const colL = getFirstInkColumnFromImage(lImg)
+        const colR = getFirstInkColumnFromImage(rImg)
+        const inkXL = lr.left + (colL / lImg.naturalWidth) * lr.width
+        const inkXR = rr.left + (colR / rImg.naturalWidth) * rr.width
+        shell.style.setProperty('--sch-left-nudge', `${inkXL - inkXR}px`)
+      } else {
+        shell.style.setProperty('--sch-left-nudge', '0px')
+      }
     }
 
     const measureOffsets = () => {
       gsap.set([leftShift, rightShift], { clearProps: 'transform' })
       shell.style.setProperty('--sch-baseline-nudge', '0px')
+      shell.style.setProperty('--sch-left-nudge', '0px')
       void shell.offsetHeight
-      syncCapAlignmentFromInk()
+
+      const mobile = window.matchMedia('(max-width: 640px)').matches
+      syncInkAlignmentVars(mobile)
       void shell.offsetHeight
 
       const lImg = imgLeft()
@@ -167,10 +217,7 @@ export function SplitWordmarkLayout({
       const rr = rImg.getBoundingClientRect()
       const cx = window.innerWidth / 2
       const cy = window.innerHeight / 2
-      const mobile = window.matchMedia('(max-width: 640px)').matches
 
-      const clubMidX = lr.left + lr.width / 2
-      const schMidX = rr.left + rr.width / 2
       const clubMidY = lr.top + lr.height / 2
       const schMidY = rr.top + rr.height / 2
 
@@ -197,8 +244,9 @@ export function SplitWordmarkLayout({
       const targetClubMidY = stackTop + lr.height / 2
       const targetSchMidY = stackTop + lr.height + LOCKUP_GAP_Y + rr.height / 2
 
-      const ax = cx - clubMidX
-      const bx = cx - schMidX
+      // Left-aligned stack (same gutter as CSS); horizontal motion handled by --sch-left-nudge + GSAP is vertical-only.
+      const ax = 0
+      const bx = 0
       const ay = targetClubMidY - clubMidY
       const by = targetSchMidY - schMidY
 
@@ -355,6 +403,7 @@ export function SplitWordmarkLayout({
       introCtx = null
       document.documentElement.style.removeProperty('--home-intro-decor-opacity')
       shell.style.removeProperty('--sch-baseline-nudge')
+      shell.style.removeProperty('--sch-left-nudge')
     }
   }, [cinematicIntro, setIntroProgress])
 

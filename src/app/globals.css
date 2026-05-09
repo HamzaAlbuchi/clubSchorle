@@ -167,25 +167,37 @@ body {
   }
 }
 
-/* Mobile: vertical editorial rails — CLUB top / SCHORLE bottom; intro GSAP pulls stack to center */
+/* Mobile: vertical editorial rails — CLUB top / SCHORLE bottom; left-aligned stack (C/S stems share one line) */
 @media (max-width: 640px) {
   .split-hero-side {
     top: auto;
     transform: none;
   }
 
+  .split-hero-shell--cinematic .split-hero-side--left {
+    z-index: 7;
+  }
+
+  .split-hero-shell--cinematic .split-hero-side--right {
+    z-index: 6;
+  }
+
   .split-hero-side--left {
-    left: 50%;
+    left: max(clamp(16px, 3vw, 48px), env(safe-area-inset-left, 0px));
     right: auto;
     top: calc(var(--nav-height) + 16px);
-    transform: translateX(-50%);
+    transform: none;
   }
 
   .split-hero-side--right {
-    left: 50%;
+    left: max(clamp(16px, 3vw, 48px), env(safe-area-inset-left, 0px));
     right: auto;
     bottom: max(14px, env(safe-area-inset-bottom, 0px));
-    transform: translateX(-50%);
+    transform: none;
+  }
+
+  .split-hero-baseline-anchor--sch {
+    transform: translateX(var(--sch-left-nudge, 0px)) translateY(var(--sch-baseline-nudge, 0px));
   }
 
   .split-hero-wordmark {

@@ -69,23 +69,31 @@ function generateParticles(): ParticleConfig[] {
 
 export function AmbientEdgeDrift({ style }: { style?: CSSProperties }) {
   const [reduceMotion, setReduceMotion] = useState(false)
+  const [narrowViewport, setNarrowViewport] = useState(false)
   const [mounted, setMounted] = useState(false)
 
   useEffect(() => {
-    const mq = window.matchMedia('(prefers-reduced-motion: reduce)')
-    const sync = () => setReduceMotion(mq.matches)
-    sync()
-    mq.addEventListener('change', sync)
+    const mqReduce = window.matchMedia('(prefers-reduced-motion: reduce)')
+    const mqNarrow = window.matchMedia('(max-width: 640px)')
+    const syncReduce = () => setReduceMotion(mqReduce.matches)
+    const syncNarrow = () => setNarrowViewport(mqNarrow.matches)
+    syncReduce()
+    syncNarrow()
+    mqReduce.addEventListener('change', syncReduce)
+    mqNarrow.addEventListener('change', syncNarrow)
     setMounted(true)
-    return () => mq.removeEventListener('change', sync)
+    return () => {
+      mqReduce.removeEventListener('change', syncReduce)
+      mqNarrow.removeEventListener('change', syncNarrow)
+    }
   }, [])
 
   const particles = useMemo(() => {
-    if (!mounted || reduceMotion) return []
+    if (!mounted || reduceMotion || narrowViewport) return []
     return generateParticles()
-  }, [mounted, reduceMotion])
+  }, [mounted, narrowViewport, reduceMotion])
 
-  if (reduceMotion || !mounted) return null
+  if (reduceMotion || narrowViewport || !mounted) return null
 
   return (
     <div className="ambient-edge-drift" aria-hidden style={style}>
