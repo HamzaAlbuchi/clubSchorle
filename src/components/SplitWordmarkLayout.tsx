@@ -1,15 +1,45 @@
 'use client'
 
 import Image from 'next/image'
-import { useEffect, useLayoutEffect, useRef } from 'react'
+import { useCallback, useEffect, useLayoutEffect, useRef } from 'react'
 import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { useHomeIntroProgressSetter } from '@/components/HomeIntroScrollContext'
 
 gsap.registerPlugin(ScrollTrigger)
 
-function refreshScrollTriggersSoon() {
-  requestAnimationFrame(() => ScrollTrigger.refresh())
+/** First row (from top) containing ink — aligns cap height across PNGs despite different matte padding. */
+function getFirstInkRowFromImage(img: HTMLImageElement): number {
+  const w = img.naturalWidth
+  const h = img.naturalHeight
+  if (w < 2 || h < 2) return 0
+
+  const canvas = document.createElement('canvas')
+  canvas.width = w
+  canvas.height = h
+  const ctx = canvas.getContext('2d', { willReadFrequently: true })
+  if (!ctx) return 0
+
+  try {
+    ctx.drawImage(img, 0, 0)
+    const { data } = ctx.getImageData(0, 0, w, h)
+    const xStride = Math.max(1, Math.floor(w / 500))
+    for (let y = 0; y < h; y++) {
+      for (let x = 0; x < w; x += xStride) {
+        const i = (y * w + x) * 4
+        const r = data[i]
+        const g = data[i + 1]
+        const b = data[i + 2]
+        const a = data[i + 3]
+        const dark = r + g + b < 520
+        if (a > 42 && dark) return y
+        if (a > 220 && dark) return y
+      }
+    }
+  } catch {
+    return 0
+  }
+  return 0
 }
 
 function introEndDistancePx(mobile: boolean) {
@@ -32,6 +62,14 @@ export function SplitWordmarkLayout({
   const veilRef = useRef<HTMLDivElement>(null)
   const revealRef = useRef<HTMLDivElement>(null)
   const setIntroProgress = useHomeIntroProgressSetter()
+  const introRebuildRef = useRef<(() => void) | null>(null)
+
+  const bumpIntroLayout = useCallback(() => {
+    requestAnimationFrame(() => {
+      introRebuildRef.current?.()
+      ScrollTrigger.refresh()
+    })
+  }, [])
 
   useEffect(() => {
     const el = scrollerRef.current
@@ -45,7 +83,7 @@ export function SplitWordmarkLayout({
         return el.scrollTop
       },
       getBoundingClientRect() {
-        return { top: 0, left: 0, width: window.innerWidth, height: window.innerHeight }
+        return el.getBoundingClientRect()
       },
     })
 
@@ -90,22 +128,33 @@ export function SplitWordmarkLayout({
     const imgLeft = () => leftShift.querySelector('img')
     const imgRight = () => rightShift.querySelector('img')
 
-    const syncDesktopBaselineVar = () => {
-      const mqDesktop = window.matchMedia('(min-width: 641px)')
+    /** Align SCHORLE so first ink row (cap of S) meets CLUB's first ink row (cap of C). */
+    const syncCapAlignmentFromInk = () => {
       const lImg = imgLeft()
       const rImg = imgRight()
-      if (!mqDesktop.matches || !lImg || !rImg) {
+      if (!(lImg instanceof HTMLImageElement) || !(rImg instanceof HTMLImageElement)) {
         shell.style.setProperty('--sch-baseline-nudge', '0px')
         return
       }
+      if (lImg.naturalWidth < 2 || rImg.naturalWidth < 2) {
+        shell.style.setProperty('--sch-baseline-nudge', '0px')
+        return
+      }
+
       const lr = lImg.getBoundingClientRect()
       const rr = rImg.getBoundingClientRect()
-      shell.style.setProperty('--sch-baseline-nudge', `${lr.top - rr.top}px`)
+      const rowL = getFirstInkRowFromImage(lImg)
+      const rowR = getFirstInkRowFromImage(rImg)
+      const capScreenYClub = lr.top + (rowL / lImg.naturalHeight) * lr.height
+      const capScreenYSchorle = rr.top + (rowR / rImg.naturalHeight) * rr.height
+      shell.style.setProperty('--sch-baseline-nudge', `${capScreenYClub - capScreenYSchorle}px`)
     }
 
     const measureOffsets = () => {
       gsap.set([leftShift, rightShift], { clearProps: 'transform' })
-      syncDesktopBaselineVar()
+      shell.style.setProperty('--sch-baseline-nudge', '0px')
+      void shell.offsetHeight
+      syncCapAlignmentFromInk()
       void shell.offsetHeight
 
       const lImg = imgLeft()
@@ -166,20 +215,29 @@ export function SplitWordmarkLayout({
     let introCtx: gsap.Context | null = null
     let imageLoadAttempts = 0
 
+    const imgDecoded = (node: Element | null | undefined): node is HTMLImageElement =>
+      !!node && node instanceof HTMLImageElement && node.naturalWidth > 0
+
     const build = () => {
       introCtx?.revert()
 
       const { ax, ay, bx, by, mobile } = measureOffsets()
       const lImg = imgLeft()
       const rImg = imgRight()
+      const lr = lImg?.getBoundingClientRect()
+      const rr = rImg?.getBoundingClientRect()
       const imgsReady =
-        lImg &&
-        rImg &&
-        lImg.getBoundingClientRect().width > 2 &&
-        rImg.getBoundingClientRect().width > 2
+        imgDecoded(lImg) &&
+        imgDecoded(rImg) &&
+        !!lr &&
+        !!rr &&
+        lr.width > 2 &&
+        lr.height > 2 &&
+        rr.width > 2 &&
+        rr.height > 2
 
       if (!imgsReady) {
-        if (imageLoadAttempts < 90) {
+        if (imageLoadAttempts < 240) {
           imageLoadAttempts += 1
           requestAnimationFrame(build)
           return
@@ -275,6 +333,7 @@ export function SplitWordmarkLayout({
       }, shell)
     }
 
+    introRebuildRef.current = build
 
     build()
 
@@ -291,12 +350,20 @@ export function SplitWordmarkLayout({
     return () => {
       window.removeEventListener('resize', onResize)
       cancelAnimationFrame(resizeRaf)
+      introRebuildRef.current = null
       introCtx?.revert()
       introCtx = null
       document.documentElement.style.removeProperty('--home-intro-decor-opacity')
       shell.style.removeProperty('--sch-baseline-nudge')
     }
   }, [cinematicIntro, setIntroProgress])
+
+  useEffect(() => {
+    if (!cinematicIntro) return
+    const onLoad = () => bumpIntroLayout()
+    window.addEventListener('load', onLoad)
+    return () => window.removeEventListener('load', onLoad)
+  }, [cinematicIntro, bumpIntroLayout])
 
   return (
     <div
@@ -316,7 +383,7 @@ export function SplitWordmarkLayout({
             width={900}
             height={260}
             priority
-            onLoadingComplete={refreshScrollTriggersSoon}
+            onLoadingComplete={bumpIntroLayout}
           />
         </div>
       </div>
@@ -330,7 +397,7 @@ export function SplitWordmarkLayout({
               width={1400}
               height={260}
               priority
-              onLoadingComplete={refreshScrollTriggersSoon}
+              onLoadingComplete={bumpIntroLayout}
             />
           </div>
         </div>

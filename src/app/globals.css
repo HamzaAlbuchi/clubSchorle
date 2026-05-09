@@ -79,6 +79,7 @@ body {
   scroll-behavior: smooth;
   position: relative;
   z-index: 1;
+  touch-action: pan-y;
   /* Large intentional whitespace between fixed words */
   padding-left: clamp(140px, 18vw, 280px);
   padding-right: clamp(140px, 18vw, 280px);
@@ -113,11 +114,9 @@ body {
   will-change: transform;
 }
 
-/* Desktop: align SCHORLE top edge to CLUB top edge so caps share one architectural line */
-@media (min-width: 641px) {
-  .split-hero-baseline-anchor--sch {
-    transform: translateY(var(--sch-baseline-nudge, 0px));
-  }
+/* Cap-height alignment: SCHORLE nudge from ink detection (C vs S share one architectural line) */
+.split-hero-baseline-anchor--sch {
+  transform: translateY(var(--sch-baseline-nudge, 0px));
 }
 
 .split-hero-intro-reveal {
@@ -172,10 +171,6 @@ body {
 @media (max-width: 640px) {
   .split-hero-side {
     top: auto;
-    transform: none;
-  }
-
-  .split-hero-baseline-anchor--sch {
     transform: none;
   }
 
