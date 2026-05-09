@@ -26,7 +26,7 @@ const hand = Kalam({
 
 export const metadata: Metadata = {
   title: 'Club Schorle — München',
-  description: 'Intimate food experiences for the curious, the hungry, and the slightly weird.',
+  description: 'A quiet typographic installation — forthcoming.',
 }
 
 export default function RootLayout({

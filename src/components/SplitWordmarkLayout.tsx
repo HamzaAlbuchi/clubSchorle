@@ -82,12 +82,21 @@ function introEndDistancePx(mobile: boolean) {
     : Math.min(window.innerHeight * 1.08, 1050)
 }
 
+function scrollInteractionDistancePx(mobile: boolean, comingSoon: boolean) {
+  if (!comingSoon) return introEndDistancePx(mobile)
+  return mobile
+    ? Math.min(window.innerHeight * 1.78, 1580)
+    : Math.min(window.innerHeight * 1.48, 1380)
+}
+
 export function SplitWordmarkLayout({
   children,
   cinematicIntro = false,
+  comingSoon = false,
 }: {
   children: React.ReactNode
   cinematicIntro?: boolean
+  comingSoon?: boolean
 }) {
   const shellRef = useRef<HTMLDivElement>(null)
   const scrollerRef = useRef<HTMLDivElement>(null)
@@ -105,7 +114,7 @@ export function SplitWordmarkLayout({
     })
   }, [])
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     const el = scrollerRef.current
     if (!el) return
 
@@ -126,24 +135,27 @@ export function SplitWordmarkLayout({
     ScrollTrigger.addEventListener('refreshInit', ScrollTrigger.update)
     ScrollTrigger.refresh()
 
-    return () => {
-      el.removeEventListener('scroll', onScroll)
-      ScrollTrigger.scrollerProxy(el, {})
-      ScrollTrigger.refresh()
+    if (!cinematicIntro) {
+      return () => {
+        el.removeEventListener('scroll', onScroll)
+        ScrollTrigger.scrollerProxy(el, {})
+        ScrollTrigger.refresh()
+      }
     }
-  }, [])
-
-  useLayoutEffect(() => {
-    if (!cinematicIntro) return
 
     const shell = shellRef.current
-    const el = scrollerRef.current
     const leftShift = leftShiftRef.current
     const rightShift = rightShiftRef.current
     const veil = veilRef.current
     const reveal = revealRef.current
 
-    if (!shell || !el || !leftShift || !rightShift || !veil || !reveal) return
+    if (!shell || !el || !leftShift || !rightShift || !veil || !reveal) {
+      return () => {
+        el.removeEventListener('scroll', onScroll)
+        ScrollTrigger.scrollerProxy(el, {})
+        ScrollTrigger.refresh()
+      }
+    }
 
     const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
 
@@ -152,11 +164,26 @@ export function SplitWordmarkLayout({
       gsap.set(reveal, { opacity: 1, filter: 'none' })
       gsap.set([leftShift, rightShift], { clearProps: 'transform' })
       document.documentElement.style.setProperty('--home-intro-decor-opacity', '1')
+      if (comingSoon) {
+        document.documentElement.style.setProperty('--home-bubbles-opacity', '0.62')
+        const li = leftShift.querySelector<HTMLElement>('.split-hero-morph-stack img')
+        const lt = leftShift.querySelector<HTMLElement>('.split-hero-morph-type')
+        const ri = rightShift.querySelector<HTMLElement>('.split-hero-morph-stack img')
+        const rt = rightShift.querySelector<HTMLElement>('.split-hero-morph-type')
+        if (li && lt && ri && rt) {
+          gsap.set([li, ri], { opacity: 0, filter: 'none' })
+          gsap.set([lt, rt], { opacity: 1, filter: 'none', letterSpacing: '0.05em' })
+        }
+      }
       setIntroProgress?.(1)
       return () => {
         document.documentElement.style.removeProperty('--home-intro-decor-opacity')
+        document.documentElement.style.removeProperty('--home-bubbles-opacity')
         shell.style.removeProperty('--sch-baseline-nudge')
         shell.style.removeProperty('--sch-left-nudge')
+        el.removeEventListener('scroll', onScroll)
+        ScrollTrigger.scrollerProxy(el, {})
+        ScrollTrigger.refresh()
       }
     }
 
@@ -274,7 +301,10 @@ export function SplitWordmarkLayout({
     let imageLoadAttempts = 0
 
     const imgDecoded = (node: Element | null | undefined): node is HTMLImageElement =>
-      !!node && node instanceof HTMLImageElement && node.naturalWidth > 0
+      !!node &&
+      node instanceof HTMLImageElement &&
+      node.naturalWidth > 0 &&
+      node.naturalHeight > 0
 
     const build = () => {
       introCtx?.revert()
@@ -310,54 +340,92 @@ export function SplitWordmarkLayout({
           gsap.set(veil, { opacity: 0 })
           gsap.set(reveal, { opacity: 1, filter: 'none' })
           gsap.set([leftShift, rightShift], { clearProps: 'transform' })
-          document.documentElement.style.setProperty('--home-intro-decor-opacity', '1')
+          document.documentElement.style.setProperty(
+            '--home-intro-decor-opacity',
+            comingSoon ? '0' : '1',
+          )
+          if (comingSoon) {
+            document.documentElement.style.setProperty('--home-bubbles-opacity', '0')
+          }
           setIntroProgress?.(1)
           return
         }
 
         const skipBlur = window.matchMedia('(max-width: 768px)').matches
 
-        gsap.set(veil, { opacity: 1 })
+        gsap.set(veil, { opacity: comingSoon ? 0.42 : 1 })
         gsap.set(reveal, {
           opacity: 0,
           filter: skipBlur ? 'none' : 'blur(11px)',
         })
-        document.documentElement.style.setProperty('--home-intro-decor-opacity', '0')
+        document.documentElement.style.setProperty('--home-intro-decor-opacity', comingSoon ? '0' : '0')
+        if (comingSoon) {
+          document.documentElement.style.setProperty('--home-bubbles-opacity', '0')
+        }
         setIntroProgress?.(0)
 
         const introScale = mobile ? 1 : 1.22
-        // Mobile rest state matches globals.css left rail (no GSAP x); avoids centering both into the same band / overlap read.
         const endX = 0
         gsap.set(leftShift, { x: ax, y: ay, scale: introScale })
         gsap.set(rightShift, { x: bx, y: by, scale: introScale })
 
-        gsap.timeline({
+        const leftInk = comingSoon
+          ? (leftShift.querySelector<HTMLElement>('.split-hero-morph-stack img') ?? null)
+          : null
+        const leftType = comingSoon
+          ? (leftShift.querySelector<HTMLElement>('.split-hero-morph-type') ?? null)
+          : null
+        const rightInk = comingSoon
+          ? (rightShift.querySelector<HTMLElement>('.split-hero-morph-stack img') ?? null)
+          : null
+        const rightType = comingSoon
+          ? (rightShift.querySelector<HTMLElement>('.split-hero-morph-type') ?? null)
+          : null
+
+        const morphReady = !!(leftInk && leftType && rightInk && rightType)
+        if (comingSoon && morphReady) {
+          gsap.set([leftType, rightType], { opacity: 0, filter: 'blur(14px)' })
+          gsap.set(leftType, { letterSpacing: '0.44em' })
+          gsap.set(rightType, { letterSpacing: '0.58em' })
+          gsap.set([leftInk, rightInk], { opacity: 1, filter: 'blur(0px)', scale: 1 })
+        }
+
+        const tl = gsap.timeline({
           defaults: { ease: 'none', duration: 1 },
           scrollTrigger: {
             scroller: el,
             start: 'top top',
-            end: () => `+=${introEndDistancePx(mobile)}`,
-            scrub: mobile ? 2 : 1.25,
+            end: () => `+=${scrollInteractionDistancePx(mobile, comingSoon)}`,
+            scrub: mobile ? 2.15 : 1.55,
             invalidateOnRefresh: true,
             onUpdate(self) {
               setIntroProgress?.(self.progress)
-              const decor = gsap.utils.mapRange(0.22, 0.92, 0, 1, self.progress)
-              document.documentElement.style.setProperty(
-                '--home-intro-decor-opacity',
-                String(gsap.utils.clamp(0, 1, decor)),
-              )
+              if (comingSoon) {
+                const bub = gsap.utils.mapRange(0.02, 0.36, 0, 1, self.progress)
+                document.documentElement.style.setProperty(
+                  '--home-bubbles-opacity',
+                  String(gsap.utils.clamp(0, 1, bub)),
+                )
+              } else {
+                const decor = gsap.utils.mapRange(0.22, 0.92, 0, 1, self.progress)
+                document.documentElement.style.setProperty(
+                  '--home-intro-decor-opacity',
+                  String(gsap.utils.clamp(0, 1, decor)),
+                )
+              }
             },
           },
         })
-          .to(
-            veil,
-            {
-              opacity: 0,
-              duration: 1,
-              ease: 'power1.inOut',
-            },
-            0,
-          )
+
+        tl.to(
+          veil,
+          {
+            opacity: 0,
+            duration: 1,
+            ease: 'power1.inOut',
+          },
+          0,
+        )
           .to(
             reveal,
             {
@@ -390,11 +458,59 @@ export function SplitWordmarkLayout({
             },
             0,
           )
+
+        if (comingSoon && morphReady) {
+          tl.to(
+            leftInk,
+            {
+              opacity: 0,
+              filter: 'blur(9px)',
+              scale: 0.96,
+              duration: 0.4,
+              ease: 'power1.inOut',
+            },
+            0.06,
+          )
+            .to(
+              leftType,
+              {
+                opacity: 1,
+                filter: 'blur(0px)',
+                letterSpacing: '0.045em',
+                duration: 0.52,
+                ease: 'power2.out',
+              },
+              0.12,
+            )
+            .to(
+              rightInk,
+              {
+                opacity: 0,
+                filter: 'blur(9px)',
+                scale: 0.96,
+                duration: 0.4,
+                ease: 'power1.inOut',
+              },
+              0.08,
+            )
+            .to(
+              rightType,
+              {
+                opacity: 1,
+                filter: 'blur(0px)',
+                letterSpacing: '0.08em',
+                duration: 0.52,
+                ease: 'power2.out',
+              },
+              0.14,
+            )
+        }
       }, shell)
     }
 
     introRebuildRef.current = build
 
+    ScrollTrigger.refresh()
     build()
 
     const onResize = () => {
@@ -414,10 +530,14 @@ export function SplitWordmarkLayout({
       introCtx?.revert()
       introCtx = null
       document.documentElement.style.removeProperty('--home-intro-decor-opacity')
+      document.documentElement.style.removeProperty('--home-bubbles-opacity')
       shell.style.removeProperty('--sch-baseline-nudge')
       shell.style.removeProperty('--sch-left-nudge')
+      el.removeEventListener('scroll', onScroll)
+      ScrollTrigger.scrollerProxy(el, {})
+      ScrollTrigger.refresh()
     }
-  }, [cinematicIntro, setIntroProgress])
+  }, [cinematicIntro, comingSoon, setIntroProgress])
 
   useEffect(() => {
     if (!cinematicIntro) return
@@ -426,40 +546,78 @@ export function SplitWordmarkLayout({
     return () => window.removeEventListener('load', onLoad)
   }, [cinematicIntro, bumpIntroLayout])
 
+  const shellClass = [
+    cinematicIntro ? 'split-hero-shell split-hero-shell--cinematic' : 'split-hero-shell',
+    comingSoon ? 'split-hero-shell--coming-soon' : '',
+  ]
+    .filter(Boolean)
+    .join(' ')
+
   return (
-    <div
-      ref={shellRef}
-      className={cinematicIntro ? 'split-hero-shell split-hero-shell--cinematic' : 'split-hero-shell'}
-    >
+    <div ref={shellRef} className={shellClass}>
       {cinematicIntro ? (
         <div ref={veilRef} className="split-hero-intro-veil" aria-hidden="true" />
       ) : null}
 
       <div className="split-hero-side split-hero-side--left" aria-hidden="true">
         <div ref={leftShiftRef} className="split-hero-wordmark-shift">
-          <Image
-            className="split-hero-wordmark"
-            src="/brand/club.png"
-            alt=""
-            width={900}
-            height={260}
-            priority
-            onLoadingComplete={bumpIntroLayout}
-          />
+          {comingSoon ? (
+            <div className="split-hero-morph-stack">
+              <Image
+                className="split-hero-wordmark split-hero-morph-ink"
+                src="/brand/club.png"
+                alt=""
+                width={900}
+                height={260}
+                priority
+                onLoad={bumpIntroLayout}
+              />
+              <span className="split-hero-morph-type-outer" aria-hidden>
+                <span className="split-hero-morph-type">Coming</span>
+              </span>
+            </div>
+          ) : (
+            <Image
+              className="split-hero-wordmark"
+              src="/brand/club.png"
+              alt=""
+              width={900}
+              height={260}
+              priority
+              onLoad={bumpIntroLayout}
+            />
+          )}
         </div>
       </div>
       <div className="split-hero-side split-hero-side--right" aria-hidden="true">
         <div className="split-hero-baseline-anchor split-hero-baseline-anchor--sch">
           <div ref={rightShiftRef} className="split-hero-wordmark-shift">
-            <Image
-              className="split-hero-wordmark"
-              src="/brand/schorle.png"
-              alt=""
-              width={1400}
-              height={260}
-              priority
-              onLoadingComplete={bumpIntroLayout}
-            />
+            {comingSoon ? (
+              <div className="split-hero-morph-stack">
+                <Image
+                  className="split-hero-wordmark split-hero-morph-ink"
+                  src="/brand/schorle.png"
+                  alt=""
+                  width={1400}
+                  height={260}
+                  priority
+                  onLoad={bumpIntroLayout}
+                />
+                <span className="split-hero-morph-type-outer" aria-hidden>
+                  <span className="split-hero-morph-type">Soon</span>
+                </span>
+              </div>
+            ) : (
+              <Image
+                className="split-hero-wordmark"
+                src="/brand/schorle.png"
+                alt=""
+                width={1400}
+                height={260}
+                priority
+                onLoad={bumpIntroLayout}
+              />
+            )}
           </div>
         </div>
       </div>

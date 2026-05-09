@@ -9,10 +9,14 @@ function navRevealFromProgress(progress: number) {
   return Math.min(1, Math.max(0, (progress - 0.004) / 0.14))
 }
 
+const NAV_LINKS = [{ label: 'Contact', href: '/contact' as const }]
+
 export default function Navigation() {
   const pathname = usePathname()
   const introProgress = useHomeIntroProgress()
-  const homeCinematicNav = pathname === '/' && introProgress !== null
+  /** Only fade the bar with scroll when multiple links exist; single-link (e.g. Contact-only) stays visible. */
+  const homeCinematicNav =
+    pathname === '/' && introProgress !== null && NAV_LINKS.length > 1
 
   const reveal = homeCinematicNav ? navRevealFromProgress(introProgress) : 1
   const navOpacity = reveal
@@ -61,11 +65,7 @@ export default function Navigation() {
       }}
     >
       <div className="site-nav-links" style={{ display: 'flex', gap: '48px' }}>
-        {[
-          { label: 'Works', href: '/works' },
-          { label: 'About', href: '/about' },
-          { label: 'Contact', href: '/contact' },
-        ].map((link) => (
+        {NAV_LINKS.map((link) => (
           <Link
             key={link.href}
             href={link.href}
@@ -136,11 +136,7 @@ export default function Navigation() {
           }}
           onClick={() => setOpen(false)}
         >
-          {[
-            { label: 'Works', href: '/works' },
-            { label: 'About', href: '/about' },
-            { label: 'Contact', href: '/contact' },
-          ].map((link) => (
+          {NAV_LINKS.map((link) => (
             <Link
               key={link.href}
               href={link.href}

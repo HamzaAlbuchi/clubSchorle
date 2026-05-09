@@ -29,17 +29,17 @@ function rand(min: number, max: number) {
   return min + Math.random() * (max - min)
 }
 
-function generateParticles(): ParticleConfig[] {
+function generateParticles(centerColumnOnly: boolean): ParticleConfig[] {
   const list: ParticleConfig[] = []
   for (let i = 0; i < PARTICLE_COUNT; i++) {
     const slowLarge = Math.random() < 0.27
-    const side: 'left' | 'right' = Math.random() < 0.5 ? 'left' : 'right'
+    const side: 'left' | 'right' = centerColumnOnly ? 'left' : Math.random() < 0.5 ? 'left' : 'right'
 
     const sizePx = slowLarge ? rand(64, 132) : rand(22, 62)
     const durationSec = slowLarge ? rand(54, 112) : rand(24, 52)
     const delaySec = -rand(0, durationSec * 0.98)
 
-    const driftXPx = rand(-34, 34)
+    const driftXPx = centerColumnOnly ? rand(-24, 24) : rand(-34, 34)
     const rotA = rand(-32, 32)
     const rotB = rotA + rand(-18, 18)
 
@@ -52,7 +52,7 @@ function generateParticles(): ParticleConfig[] {
       key: `${i}-${Math.random().toString(36).slice(2, 10)}`,
       src: ASSETS[(Math.random() * ASSETS.length) | 0],
       side,
-      edgeVw: rand(0.4, 14.5),
+      edgeVw: centerColumnOnly ? rand(36, 64) : rand(0.4, 14.5),
       sizePx,
       durationSec,
       delaySec,
@@ -67,7 +67,17 @@ function generateParticles(): ParticleConfig[] {
   return list
 }
 
-export function AmbientEdgeDrift({ style }: { style?: CSSProperties }) {
+export function AmbientEdgeDrift({
+  style,
+  /** When true, keep edge sprites on narrow viewports (default: hidden ≤640px). */
+  edgesOnNarrow = false,
+  /** Place sprites in a vertical band around the viewport center (between side wordmarks). */
+  centerColumnOnly = false,
+}: {
+  style?: CSSProperties
+  edgesOnNarrow?: boolean
+  centerColumnOnly?: boolean
+}) {
   const [reduceMotion, setReduceMotion] = useState(false)
   const [narrowViewport, setNarrowViewport] = useState(false)
   const [mounted, setMounted] = useState(false)
@@ -88,12 +98,14 @@ export function AmbientEdgeDrift({ style }: { style?: CSSProperties }) {
     }
   }, [])
 
-  const particles = useMemo(() => {
-    if (!mounted || reduceMotion || narrowViewport) return []
-    return generateParticles()
-  }, [mounted, narrowViewport, reduceMotion])
+  const hideNarrow = narrowViewport && !edgesOnNarrow
 
-  if (reduceMotion || narrowViewport || !mounted) return null
+  const particles = useMemo(() => {
+    if (!mounted || reduceMotion || hideNarrow) return []
+    return generateParticles(centerColumnOnly)
+  }, [mounted, hideNarrow, reduceMotion, centerColumnOnly])
+
+  if (reduceMotion || hideNarrow || !mounted) return null
 
   return (
     <div className="ambient-edge-drift" aria-hidden style={style}>
@@ -102,7 +114,11 @@ export function AmbientEdgeDrift({ style }: { style?: CSSProperties }) {
           key={p.key}
           className="ambient-edge-drift__particle"
           style={{
-            ...(p.side === 'left' ? { left: `${p.edgeVw}vw` } : { right: `${p.edgeVw}vw` }),
+            ...(centerColumnOnly
+              ? { left: `${p.edgeVw}vw`, right: 'auto' }
+              : p.side === 'left'
+                ? { left: `${p.edgeVw}vw` }
+                : { right: `${p.edgeVw}vw` }),
             animationDuration: `${p.durationSec}s`,
             animationDelay: `${p.delaySec}s`,
             ['--drift-x' as string]: `${p.driftXPx}px`,

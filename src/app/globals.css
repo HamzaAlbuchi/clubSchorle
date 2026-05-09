@@ -11,6 +11,8 @@ html {
 /* Keep sizing + offsets consistent across breakpoints */
 :root {
   --nav-height: 80px;
+  /* 1 by default; home “coming soon” drives this from scroll so bubbles stay off until motion starts */
+  --home-bubbles-opacity: 1;
 }
 
 body {
@@ -161,6 +163,10 @@ body {
     opacity: 0.35;
   }
 
+  .split-hero-shell--coming-soon .split-hero-wordmark {
+    opacity: 0.9;
+  }
+
   .split-hero-center-scroll {
     padding-left: 24px;
     padding-right: 24px;
@@ -195,6 +201,10 @@ body {
   .split-hero-wordmark {
     height: clamp(30px, 11.5vw, 58px);
     opacity: 0.72;
+  }
+
+  .split-hero-morph-type {
+    font-size: clamp(20px, 9.2vw, 34px);
   }
 
   .split-hero-center-scroll {
@@ -257,6 +267,136 @@ body {
   .ambient-edge-drift {
     display: none !important;
   }
+}
+
+/* Rising bubbles — emerge below, drift upward, dissolve at top (placement controlled in JS) */
+.ambient-rise {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  overflow: hidden;
+  contain: layout paint;
+}
+
+.ambient-rise__bubble {
+  position: absolute;
+  bottom: -18vh;
+  transform: translate3d(0, 0, 0);
+  animation-name: ambientRiseFloat;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+  will-change: transform, opacity;
+  backface-visibility: hidden;
+}
+
+.ambient-rise__img {
+  display: block;
+  mix-blend-mode: multiply;
+  opacity: 1;
+  user-select: none;
+}
+
+@keyframes ambientRiseFloat {
+  0% {
+    transform: translate3d(var(--rise-drift-x, 0px), 0, 0);
+    opacity: 0;
+  }
+  6% {
+    opacity: var(--rise-op-hi, 0.1);
+  }
+  38% {
+    opacity: calc(var(--rise-op-hi, 0.1) * 0.72);
+  }
+  72% {
+    opacity: calc(var(--rise-op-hi, 0.1) * 0.45);
+  }
+  100% {
+    transform: translate3d(calc(var(--rise-drift-x, 0px) * 1.4), -118vh, 0);
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ambient-rise {
+    display: none !important;
+  }
+}
+
+.page-film-grain {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
+  opacity: 0.032;
+  mix-blend-mode: multiply;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.5'/%3E%3C/svg%3E");
+  background-size: 180px 180px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .page-film-grain {
+    opacity: 0.018;
+  }
+}
+
+/* CLUB/SCHORLE → COMING/SOON crossfade stack */
+.split-hero-morph-stack {
+  position: relative;
+  display: inline-block;
+  max-width: 100%;
+  line-height: 0;
+  vertical-align: top;
+}
+
+.split-hero-morph-stack .split-hero-wordmark,
+.split-hero-morph-stack img {
+  display: block;
+  width: auto;
+}
+
+/* Outer flex box: GSAP must not touch transform here (GSAP overwrites transform on the inner type). */
+.split-hero-morph-type-outer {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.split-hero-morph-type {
+  position: relative;
+  left: auto;
+  top: auto;
+  transform: none;
+  font-family: var(--font-cormorant), serif;
+  font-weight: 600;
+  font-style: normal;
+  font-size: clamp(26px, 4.8vw, 72px);
+  line-height: 1;
+  letter-spacing: 0.42em;
+  text-transform: uppercase;
+  color: #0d0c0a;
+  opacity: 0;
+  white-space: nowrap;
+  pointer-events: none;
+  will-change: opacity, filter, letter-spacing, transform;
+}
+
+.split-hero-shell--coming-soon .split-hero-morph-type {
+  mix-blend-mode: multiply;
+}
+
+.split-hero-shell--coming-soon .split-hero-morph-ink {
+  will-change: opacity, filter, transform;
+}
+
+/* Home “coming soon”: scroll runway only — center stays atmospheric */
+.coming-soon-scroll-body {
+  min-height: 175vh;
+  width: 100%;
+  pointer-events: none;
 }
 
 /* Animations */
