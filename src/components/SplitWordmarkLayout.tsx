@@ -210,7 +210,7 @@ export function SplitWordmarkLayout({
       const lImg = imgLeft()
       const rImg = imgRight()
       if (!lImg || !rImg) {
-        return { ax: 0, ay: 0, bx: 0, by: 0, mobile: false, mxRest: null as number | null }
+        return { ax: 0, ay: 0, bx: 0, by: 0, mobile: false }
       }
 
       const lr = lImg.getBoundingClientRect()
@@ -233,12 +233,11 @@ export function SplitWordmarkLayout({
           ay: dyAlign,
           bx,
           by: dyAlign,
-          mxRest: null,
         }
       }
 
-      // Phone: unified centered stack (shared horizontal translate preserves C/S left axis); scrub moves CLUB ↑ / SCHORLE ↓.
-      const LOCKUP_GAP_Y = Math.min(Math.max(lr.height * 1.12, 32), 80)
+      // Phone: intro = one centered stack (shared mx preserves C/S left axis); end = left rail (CSS), CLUB top / SCHORLE bottom — ref layout.
+      const LOCKUP_GAP_Y = Math.min(Math.max(lr.height * 1.12, 36), 88)
       const stackH = lr.height + LOCKUP_GAP_Y + rr.height
       const stackTop = cy - stackH / 2
 
@@ -258,21 +257,13 @@ export function SplitWordmarkLayout({
       const mxIntroRaw = cx - midStack
       const mxIntro = Number.isFinite(mxIntroRaw) ? mxIntroRaw : 0
 
-      gsap.set(leftShift, { x: 0, y: 0, scale: 1 })
-      gsap.set(rightShift, { x: 0, y: 0, scale: 1 })
-      void shell.offsetHeight
-      const lrRail = lImg.getBoundingClientRect()
-      const rrRail = rImg.getBoundingClientRect()
-      const midRail =
-        (Math.min(lrRail.left, rrRail.left) + Math.max(lrRail.right, rrRail.right)) / 2
-      const mxRestRaw = cx - midRail
-      const mxRest = Number.isFinite(mxRestRaw) ? mxRestRaw : 0
+      gsap.set(leftShift, { clearProps: 'transform' })
+      gsap.set(rightShift, { clearProps: 'transform' })
 
       return {
         mobile: true,
         ax: mxIntro,
         bx: mxIntro,
-        mxRest,
         ay,
         by,
       }
@@ -288,7 +279,7 @@ export function SplitWordmarkLayout({
     const build = () => {
       introCtx?.revert()
 
-      const { ax, ay, bx, by, mobile, mxRest } = measureOffsets()
+      const { ax, ay, bx, by, mobile } = measureOffsets()
       const lImg = imgLeft()
       const rImg = imgRight()
       const lr = lImg?.getBoundingClientRect()
@@ -335,7 +326,8 @@ export function SplitWordmarkLayout({
         setIntroProgress?.(0)
 
         const introScale = mobile ? 1 : 1.22
-        const endX = mobile ? mxRest ?? 0 : 0
+        // Mobile rest state matches globals.css left rail (no GSAP x); avoids centering both into the same band / overlap read.
+        const endX = 0
         gsap.set(leftShift, { x: ax, y: ay, scale: introScale })
         gsap.set(rightShift, { x: bx, y: by, scale: introScale })
 
