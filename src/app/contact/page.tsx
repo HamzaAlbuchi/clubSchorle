@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import Navigation from '@/components/Navigation'
 import { PageWrapper } from '@/components/PageWrapper'
+import { SplitWordmarkLayout } from '@/components/SplitWordmarkLayout'
 import { HandWrittenText } from '@/components/Annotations'
 
 export default function Contact() {
@@ -26,6 +27,7 @@ export default function Contact() {
     <>
       <Navigation />
       <PageWrapper>
+        <SplitWordmarkLayout>
         <div style={{ padding: '60px 48px' }}>
           {/* Main heading */}
           <div style={{ marginBottom: '120px', maxWidth: '480px', position: 'relative' }}>
@@ -395,6 +397,7 @@ export default function Contact() {
         >
           © 2026 Club Schorle
         </div>
+        </SplitWordmarkLayout>
       </PageWrapper>
     </>
   )

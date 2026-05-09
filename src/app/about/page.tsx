@@ -2,6 +2,7 @@
 
 import Navigation from '@/components/Navigation'
 import { PageWrapper } from '@/components/PageWrapper'
+import { SplitWordmarkLayout } from '@/components/SplitWordmarkLayout'
 import { PlaceholderImage } from '@/components/PlaceholderImage'
 import { HandWrittenText, StrikeThroughText } from '@/components/Annotations'
 
@@ -10,6 +11,7 @@ export default function About() {
     <>
       <Navigation />
       <PageWrapper>
+        <SplitWordmarkLayout>
         <div style={{ padding: '60px 48px' }}>
           {/* Main statement */}
           <div style={{ marginBottom: '140px', maxWidth: '580px', position: 'relative' }}>
@@ -249,6 +251,7 @@ export default function About() {
         >
           © 2026 Club Schorle
         </div>
+        </SplitWordmarkLayout>
       </PageWrapper>
     </>
   )

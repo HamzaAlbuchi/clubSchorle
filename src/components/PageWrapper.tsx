@@ -24,58 +24,47 @@ export function PageWrapper({ children, decorativeCircles = true }: PageWrapperP
         paddingTop: '80px',
       }}
     >
-      {/* Decorative hand-drawn circles scattered across page */}
+      {/* Decorative circles: left / right margins only (outside center column, near wordmarks) */}
       {decorativeCircles && (
         <>
           <div
-            style={{
-              position: 'fixed',
-              top: '10%',
-              right: '8%',
-              pointerEvents: 'none',
-              zIndex: 0,
-            }}
+            className="page-wrapper-bubble page-wrapper-bubble--left page-wrapper-bubble--top"
+            style={{ pointerEvents: 'none', zIndex: 0 }}
           >
-            <HandDrawnCircle size={140} pathIndex={0} opacity={0.24} animate={true} />
+            <HandDrawnCircle size={130} pathIndex={0} opacity={0.22} animate />
           </div>
           <div
+            className="page-wrapper-bubble page-wrapper-bubble--left page-wrapper-bubble--bottom"
             style={{
-              position: 'fixed',
-              bottom: '20%',
-              left: '5%',
               pointerEvents: 'none',
               zIndex: 0,
               animation: 'floatingBubble 8s ease-in-out infinite',
               animationDelay: '1s',
             }}
           >
-            <HandDrawnCircle size={160} pathIndex={1} opacity={0.26} />
+            <HandDrawnCircle size={150} pathIndex={1} opacity={0.24} />
           </div>
           <div
+            className="page-wrapper-bubble page-wrapper-bubble--right page-wrapper-bubble--top"
             style={{
-              position: 'fixed',
-              top: '50%',
-              right: '12%',
               pointerEvents: 'none',
               zIndex: 0,
               animation: 'floatingBubble 7s ease-in-out infinite',
-              animationDelay: '0.5s',
+              animationDelay: '0.4s',
             }}
           >
-            <HandDrawnCircle size={120} pathIndex={2} opacity={0.22} />
+            <HandDrawnCircle size={115} pathIndex={2} opacity={0.2} />
           </div>
           <div
+            className="page-wrapper-bubble page-wrapper-bubble--right page-wrapper-bubble--bottom"
             style={{
-              position: 'fixed',
-              bottom: '5%',
-              right: '20%',
               pointerEvents: 'none',
               zIndex: 0,
               animation: 'floatingBubble 9s ease-in-out infinite',
-              animationDelay: '1.5s',
+              animationDelay: '1.2s',
             }}
           >
-            <HandDrawnCircle size={100} pathIndex={3} opacity={0.25} />
+            <HandDrawnCircle size={95} pathIndex={3} opacity={0.23} />
           </div>
         </>
       )}

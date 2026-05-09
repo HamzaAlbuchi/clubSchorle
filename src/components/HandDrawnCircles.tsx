@@ -1,4 +1,6 @@
 // Hand-drawn bubble SVG paths - exact shapes from brand identity
+import Image from 'next/image'
+
 const bubblePaths = [
   // Perfect circle (slightly thick stroke)
   "M50,8 C76,8 92,24 92,50 C92,76 76,92 50,92 C24,92 8,76 8,50 C8,24 24,8 50,8Z",
@@ -46,14 +48,8 @@ export function HandDrawnCircle({ size = 100, pathIndex = 0, opacity = 1, classN
 // Logo version with circle in the middle
 export function LogoWithCircle() {
   return (
-    <div style={{ display: "flex", alignItems: "center", gap: "6px", fontFamily: "var(--font-dm-mono)" }}>
-      <span style={{ fontSize: "11px", fontWeight: 300, letterSpacing: "0.08em", textTransform: "uppercase" }}>
-        CLUB SCH
-      </span>
-      <HandDrawnCircle size={14} pathIndex={0} opacity={1} />
-      <span style={{ fontSize: "11px", fontWeight: 300, letterSpacing: "0.08em", textTransform: "uppercase" }}>
-        RLE
-      </span>
+    <div style={{ display: "flex", alignItems: "center" }}>
+      <Image src="/brand/logo-lockup.png" alt="Club Schorle" width={340} height={60} style={{ height: 18, width: 'auto' }} priority />
     </div>
   );
 }

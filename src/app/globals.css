@@ -8,11 +8,218 @@ html {
   scroll-behavior: smooth;
 }
 
+/* Keep sizing + offsets consistent across breakpoints */
+:root {
+  --nav-height: 80px;
+}
+
 body {
   font-family: var(--font-dm-mono), monospace;
   background: #F5F2EC;
   color: #0D0C0A;
   overflow-x: hidden;
+}
+
+/* Navigation responsiveness */
+@media (max-width: 640px) {
+  .site-nav {
+    padding: 18px 18px !important;
+  }
+
+  .site-nav-links {
+    display: none !important;
+  }
+
+  .site-nav-toggle {
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
+  }
+}
+
+/* Split hero (home) composition */
+.split-hero-shell {
+  position: relative;
+  height: calc(100vh - var(--nav-height));
+  overflow: hidden;
+}
+
+.split-hero-side {
+  position: fixed;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 2;
+  pointer-events: none;
+  white-space: nowrap;
+}
+
+.split-hero-wordmark {
+  display: block;
+  height: clamp(56px, 6vw, 120px);
+  width: auto;
+  opacity: 0.92;
+  /* Helps any remaining matte pixels blend into the cream background */
+  mix-blend-mode: multiply;
+}
+
+.split-hero-side--left {
+  left: clamp(16px, 3vw, 48px);
+}
+
+.split-hero-side--right {
+  right: clamp(16px, 3vw, 48px);
+}
+
+.split-hero-center-scroll {
+  height: calc(100vh - var(--nav-height));
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+  scroll-behavior: smooth;
+  position: relative;
+  z-index: 1;
+  /* Large intentional whitespace between fixed words */
+  padding-left: clamp(140px, 18vw, 280px);
+  padding-right: clamp(140px, 18vw, 280px);
+}
+
+/* Tablet: keep split, scale down proportionally */
+@media (max-width: 1024px) {
+  .split-hero-wordmark {
+    height: clamp(44px, 5.2vw, 92px);
+    opacity: 0.9;
+  }
+
+  .split-hero-center-scroll {
+    padding-left: clamp(110px, 15vw, 220px);
+    padding-right: clamp(110px, 15vw, 220px);
+  }
+}
+
+@media (max-width: 768px) {
+  :root {
+    --nav-height: 72px;
+  }
+
+  .split-hero-shell,
+  .split-hero-center-scroll {
+    height: calc(100vh - var(--nav-height));
+  }
+
+  .split-hero-wordmark {
+    height: clamp(28px, 10vw, 52px);
+    opacity: 0.35;
+  }
+
+  .split-hero-center-scroll {
+    padding-left: 24px;
+    padding-right: 24px;
+  }
+}
+
+/* Mobile: stack wordmarks (top + bottom), keep center readable */
+@media (max-width: 640px) {
+  .split-hero-side {
+    top: auto;
+    transform: none;
+  }
+
+  .split-hero-side--left {
+    left: 50%;
+    right: auto;
+    top: calc(var(--nav-height) + 12px);
+    transform: translateX(-50%);
+  }
+
+  .split-hero-side--right {
+    left: 50%;
+    right: auto;
+    bottom: 14px;
+    transform: translateX(-50%);
+  }
+
+  .split-hero-wordmark {
+    height: clamp(22px, 9.5vw, 44px);
+    opacity: 0.42;
+  }
+
+  .split-hero-center-scroll {
+    padding-left: 20px;
+    padding-right: 20px;
+    /* breathing room so content doesn't collide with wordmarks */
+    padding-top: 76px;
+    padding-bottom: 84px;
+  }
+}
+
+/* PageWrapper decorative bubbles — fixed in side gutters only */
+.page-wrapper-bubble {
+  position: fixed;
+}
+
+.page-wrapper-bubble--left.page-wrapper-bubble--top {
+  top: 14%;
+  left: clamp(8px, 2vw, 32px);
+}
+
+.page-wrapper-bubble--left.page-wrapper-bubble--bottom {
+  bottom: 16%;
+  left: clamp(20px, 3.5vw, 52px);
+}
+
+.page-wrapper-bubble--right.page-wrapper-bubble--top {
+  top: 18%;
+  right: clamp(8px, 2vw, 32px);
+}
+
+.page-wrapper-bubble--right.page-wrapper-bubble--bottom {
+  bottom: 18%;
+  right: clamp(18px, 3.2vw, 48px);
+}
+
+@media (max-width: 768px) {
+  .page-wrapper-bubble--left.page-wrapper-bubble--top {
+    top: 22%;
+    left: 6px;
+  }
+
+  .page-wrapper-bubble--left.page-wrapper-bubble--bottom {
+    bottom: 22%;
+    left: 10px;
+  }
+
+  .page-wrapper-bubble--right.page-wrapper-bubble--top {
+    top: 26%;
+    right: 6px;
+  }
+
+  .page-wrapper-bubble--right.page-wrapper-bubble--bottom {
+    bottom: 24%;
+    right: 10px;
+  }
+}
+
+@media (max-width: 640px) {
+  /* Keep bubbles in side gutters, away from stacked wordmarks */
+  .page-wrapper-bubble--left.page-wrapper-bubble--top {
+    top: calc(var(--nav-height) + 120px);
+    left: 4px;
+  }
+
+  .page-wrapper-bubble--right.page-wrapper-bubble--top {
+    top: calc(var(--nav-height) + 160px);
+    right: 4px;
+  }
+
+  .page-wrapper-bubble--left.page-wrapper-bubble--bottom {
+    bottom: 110px;
+    left: 8px;
+  }
+
+  .page-wrapper-bubble--right.page-wrapper-bubble--bottom {
+    bottom: 130px;
+    right: 8px;
+  }
 }
 
 /* Animations */
