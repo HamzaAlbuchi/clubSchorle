@@ -78,7 +78,7 @@ function getFirstInkColumnFromImage(img: HTMLImageElement): number {
 
 function introEndDistancePx(mobile: boolean) {
   return mobile
-    ? Math.min(window.innerHeight * 1.14, 1080)
+    ? Math.min(window.innerHeight * 1.42, 1320)
     : Math.min(window.innerHeight * 1.08, 1050)
 }
 
@@ -210,7 +210,7 @@ export function SplitWordmarkLayout({
       const lImg = imgLeft()
       const rImg = imgRight()
       if (!lImg || !rImg) {
-        return { ax: 0, ay: 0, bx: 0, by: 0, mobile: false }
+        return { ax: 0, ay: 0, bx: 0, by: 0, mobile: false, mxRest: null as number | null }
       }
 
       const lr = lImg.getBoundingClientRect()
@@ -233,28 +233,47 @@ export function SplitWordmarkLayout({
           ay: dyAlign,
           bx,
           by: dyAlign,
+          mxRest: null,
         }
       }
 
-      // Phone: vertical choreography — intro as one centered stack; scrub separates CLUB ↑ / SCHORLE ↓.
-      const LOCKUP_GAP_Y = Math.min(Math.max(lr.height * 0.72, 20), 52)
+      // Phone: unified centered stack (shared horizontal translate preserves C/S left axis); scrub moves CLUB ↑ / SCHORLE ↓.
+      const LOCKUP_GAP_Y = Math.min(Math.max(lr.height * 1.12, 32), 80)
       const stackH = lr.height + LOCKUP_GAP_Y + rr.height
       const stackTop = cy - stackH / 2
 
       const targetClubMidY = stackTop + lr.height / 2
       const targetSchMidY = stackTop + lr.height + LOCKUP_GAP_Y + rr.height / 2
 
-      // Left-aligned stack (same gutter as CSS); horizontal motion handled by --sch-left-nudge + GSAP is vertical-only.
-      const ax = 0
-      const bx = 0
       const ay = targetClubMidY - clubMidY
       const by = targetSchMidY - schMidY
 
+      gsap.set(leftShift, { x: 0, y: ay, scale: 1 })
+      gsap.set(rightShift, { x: 0, y: by, scale: 1 })
+      void shell.offsetHeight
+      const lrStack = lImg.getBoundingClientRect()
+      const rrStack = rImg.getBoundingClientRect()
+      const midStack =
+        (Math.min(lrStack.left, rrStack.left) + Math.max(lrStack.right, rrStack.right)) / 2
+      const mxIntroRaw = cx - midStack
+      const mxIntro = Number.isFinite(mxIntroRaw) ? mxIntroRaw : 0
+
+      gsap.set(leftShift, { x: 0, y: 0, scale: 1 })
+      gsap.set(rightShift, { x: 0, y: 0, scale: 1 })
+      void shell.offsetHeight
+      const lrRail = lImg.getBoundingClientRect()
+      const rrRail = rImg.getBoundingClientRect()
+      const midRail =
+        (Math.min(lrRail.left, rrRail.left) + Math.max(lrRail.right, rrRail.right)) / 2
+      const mxRestRaw = cx - midRail
+      const mxRest = Number.isFinite(mxRestRaw) ? mxRestRaw : 0
+
       return {
         mobile: true,
-        ax,
+        ax: mxIntro,
+        bx: mxIntro,
+        mxRest,
         ay,
-        bx,
         by,
       }
     }
@@ -269,7 +288,7 @@ export function SplitWordmarkLayout({
     const build = () => {
       introCtx?.revert()
 
-      const { ax, ay, bx, by, mobile } = measureOffsets()
+      const { ax, ay, bx, by, mobile, mxRest } = measureOffsets()
       const lImg = imgLeft()
       const rImg = imgRight()
       const lr = lImg?.getBoundingClientRect()
@@ -315,7 +334,8 @@ export function SplitWordmarkLayout({
         document.documentElement.style.setProperty('--home-intro-decor-opacity', '0')
         setIntroProgress?.(0)
 
-        const introScale = mobile ? 1.1 : 1.22
+        const introScale = mobile ? 1 : 1.22
+        const endX = mobile ? mxRest ?? 0 : 0
         gsap.set(leftShift, { x: ax, y: ay, scale: introScale })
         gsap.set(rightShift, { x: bx, y: by, scale: introScale })
 
@@ -325,7 +345,7 @@ export function SplitWordmarkLayout({
             scroller: el,
             start: 'top top',
             end: () => `+=${introEndDistancePx(mobile)}`,
-            scrub: 1.25,
+            scrub: mobile ? 2 : 1.25,
             invalidateOnRefresh: true,
             onUpdate(self) {
               setIntroProgress?.(self.progress)
@@ -359,7 +379,7 @@ export function SplitWordmarkLayout({
           .to(
             leftShift,
             {
-              x: 0,
+              x: endX,
               y: 0,
               scale: 1,
               duration: 1,
@@ -370,7 +390,7 @@ export function SplitWordmarkLayout({
           .to(
             rightShift,
             {
-              x: 0,
+              x: endX,
               y: 0,
               scale: 1,
               duration: 1,

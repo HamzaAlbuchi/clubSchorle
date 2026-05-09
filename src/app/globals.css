@@ -174,14 +174,6 @@ body {
     transform: none;
   }
 
-  .split-hero-shell--cinematic .split-hero-side--left {
-    z-index: 7;
-  }
-
-  .split-hero-shell--cinematic .split-hero-side--right {
-    z-index: 6;
-  }
-
   .split-hero-side--left {
     left: max(clamp(16px, 3vw, 48px), env(safe-area-inset-left, 0px));
     right: auto;
