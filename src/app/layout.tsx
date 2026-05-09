@@ -1,6 +1,6 @@
-import type { Metadata } from "next";
-import { Cormorant, DM_Mono, Caveat } from "next/font/google";
-import "./globals.css";
+import type { Metadata } from 'next'
+import { Cormorant, DM_Mono, Kalam } from 'next/font/google'
+import './globals.css'
 
 const cormorant = Cormorant({
   subsets: ["latin"],
@@ -11,32 +11,32 @@ const cormorant = Cormorant({
 });
 
 const dmMono = DM_Mono({
-  subsets: ["latin"],
-  variable: "--font-dm-mono",
-  weight: ["300", "400", "500"],
-  display: "swap",
-});
+  subsets: ['latin'],
+  variable: '--font-dm-mono',
+  weight: ['300', '400', '500'],
+  display: 'swap',
+})
 
-const caveat = Caveat({
-  subsets: ["latin"],
-  variable: "--font-caveat",
-  weight: ["400", "500", "600", "700"],
-  display: "swap",
-});
+const hand = Kalam({
+  subsets: ['latin'],
+  variable: '--font-hand',
+  weight: ['300', '400'],
+  display: 'swap',
+})
 
 export const metadata: Metadata = {
-  title: "Club Schorle — München",
-  description: "Intimate food experiences for the curious, the hungry, and the slightly weird.",
-};
+  title: 'Club Schorle — München',
+  description: 'Intimate food experiences for the curious, the hungry, and the slightly weird.',
+}
 
 export default function RootLayout({
   children,
 }: Readonly<{
-  children: React.ReactNode;
+  children: React.ReactNode
 }>) {
   return (
-    <html lang="de" className={`${cormorant.variable} ${dmMono.variable} ${caveat.variable}`}>
+    <html lang="de" className={`${cormorant.variable} ${dmMono.variable} ${hand.variable}`}>
       <body>{children}</body>
     </html>
-  );
+  )
 }

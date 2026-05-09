@@ -3,7 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
+    "clean": "chmod -R u+w .next 2>/dev/null || true; rm -rf .next node_modules/.cache",
     "dev": "next dev",
+    "dev:stable": "npm run clean && ulimit -n 10000 && WATCHPACK_POLLING=true WATCHPACK_POLLING_INTERVAL=500 next dev",
     "build": "next build",
     "start": "next start",
     "lint": "next lint"
