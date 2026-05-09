@@ -42,6 +42,7 @@ body {
   position: relative;
   height: calc(100vh - var(--nav-height));
   overflow: hidden;
+  overflow-x: hidden;
 }
 
 .split-hero-side {
@@ -112,6 +113,13 @@ body {
   will-change: transform;
 }
 
+/* Desktop: align SCHORLE top edge to CLUB top edge so caps share one architectural line */
+@media (min-width: 641px) {
+  .split-hero-baseline-anchor--sch {
+    transform: translateY(var(--sch-baseline-nudge, 0px));
+  }
+}
+
 .split-hero-intro-reveal {
   min-height: min-content;
 }
@@ -160,38 +168,41 @@ body {
   }
 }
 
-/* Mobile: stack wordmarks (top + bottom), keep center readable */
+/* Mobile: vertical editorial rails — CLUB top / SCHORLE bottom; intro GSAP pulls stack to center */
 @media (max-width: 640px) {
   .split-hero-side {
     top: auto;
     transform: none;
   }
 
+  .split-hero-baseline-anchor--sch {
+    transform: none;
+  }
+
   .split-hero-side--left {
     left: 50%;
     right: auto;
-    top: calc(var(--nav-height) + 12px);
+    top: calc(var(--nav-height) + 16px);
     transform: translateX(-50%);
   }
 
   .split-hero-side--right {
     left: 50%;
     right: auto;
-    bottom: 14px;
+    bottom: max(14px, env(safe-area-inset-bottom, 0px));
     transform: translateX(-50%);
   }
 
   .split-hero-wordmark {
-    height: clamp(22px, 9.5vw, 44px);
-    opacity: 0.42;
+    height: clamp(30px, 11.5vw, 58px);
+    opacity: 0.72;
   }
 
   .split-hero-center-scroll {
-    padding-left: 20px;
-    padding-right: 20px;
-    /* breathing room so content doesn't collide with wordmarks */
-    padding-top: 76px;
-    padding-bottom: 84px;
+    padding-left: max(18px, env(safe-area-inset-left, 0px));
+    padding-right: max(18px, env(safe-area-inset-right, 0px));
+    padding-top: clamp(96px, 26vw, 132px);
+    padding-bottom: clamp(104px, 28vw, 140px);
   }
 }
 

@@ -4,16 +4,18 @@ import Image from 'next/image'
 import { useEffect, useLayoutEffect, useRef } from 'react'
 import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
-
-function refreshScrollTriggersSoon() {
-  requestAnimationFrame(() => ScrollTrigger.refresh())
-}
 import { useHomeIntroProgressSetter } from '@/components/HomeIntroScrollContext'
 
 gsap.registerPlugin(ScrollTrigger)
 
-function introEndDistancePx() {
-  return Math.min(window.innerHeight * 1.08, 1050)
+function refreshScrollTriggersSoon() {
+  requestAnimationFrame(() => ScrollTrigger.refresh())
+}
+
+function introEndDistancePx(mobile: boolean) {
+  return mobile
+    ? Math.min(window.innerHeight * 1.14, 1080)
+    : Math.min(window.innerHeight * 1.08, 1050)
 }
 
 export function SplitWordmarkLayout({
@@ -81,14 +83,29 @@ export function SplitWordmarkLayout({
       setIntroProgress?.(1)
       return () => {
         document.documentElement.style.removeProperty('--home-intro-decor-opacity')
+        shell.style.removeProperty('--sch-baseline-nudge')
       }
     }
 
     const imgLeft = () => leftShift.querySelector('img')
     const imgRight = () => rightShift.querySelector('img')
 
+    const syncDesktopBaselineVar = () => {
+      const mqDesktop = window.matchMedia('(min-width: 641px)')
+      const lImg = imgLeft()
+      const rImg = imgRight()
+      if (!mqDesktop.matches || !lImg || !rImg) {
+        shell.style.setProperty('--sch-baseline-nudge', '0px')
+        return
+      }
+      const lr = lImg.getBoundingClientRect()
+      const rr = rImg.getBoundingClientRect()
+      shell.style.setProperty('--sch-baseline-nudge', `${lr.top - rr.top}px`)
+    }
+
     const measureOffsets = () => {
       gsap.set([leftShift, rightShift], { clearProps: 'transform' })
+      syncDesktopBaselineVar()
       void shell.offsetHeight
 
       const lImg = imgLeft()
@@ -103,15 +120,15 @@ export function SplitWordmarkLayout({
       const cy = window.innerHeight / 2
       const mobile = window.matchMedia('(max-width: 640px)').matches
 
-      // Brand lockup (reference): inner horizontal gap ≈ width of “CLUB”. Start from that so the
-      // scrub has room to travel into the wide split layout — not squeezed (14px) and not already split.
-      const LOCKUP_GAP_X = lr.width * 1
-
+      const clubMidX = lr.left + lr.width / 2
+      const schMidX = rr.left + rr.width / 2
       const clubMidY = lr.top + lr.height / 2
       const schMidY = rr.top + rr.height / 2
-      const dyAlign = cy - (clubMidY + schMidY) / 2
 
       if (!mobile) {
+        // Horizontal lockup — gap scales with rendered CLUB width (editorial reference ~ one word width).
+        const LOCKUP_GAP_X = lr.width * 1.05
+        const dyAlign = cy - (clubMidY + schMidY) / 2
         const ax = cx - LOCKUP_GAP_X / 2 - lr.right
         const bx = cx + LOCKUP_GAP_X / 2 - rr.left
         return {
@@ -123,25 +140,24 @@ export function SplitWordmarkLayout({
         }
       }
 
-      // Stacked: preserve reference proportion using the same gap metric vertically between marks.
-      const pairMidX = (lr.left + rr.right) / 2
-      const dx = cx - pairMidX
-      const pairMidY = (clubMidY + schMidY) / 2
-      const dyCenter = cy - pairMidY
-      const currentGapY = rr.top - lr.bottom
-      let ay = dyCenter
-      let by = dyCenter
-      if (currentGapY > LOCKUP_GAP_X) {
-        const shave = (currentGapY - LOCKUP_GAP_X) / 2
-        ay += shave
-        by -= shave
-      }
+      // Phone: vertical choreography — intro as one centered stack; scrub separates CLUB ↑ / SCHORLE ↓.
+      const LOCKUP_GAP_Y = Math.min(Math.max(lr.height * 0.72, 20), 52)
+      const stackH = lr.height + LOCKUP_GAP_Y + rr.height
+      const stackTop = cy - stackH / 2
+
+      const targetClubMidY = stackTop + lr.height / 2
+      const targetSchMidY = stackTop + lr.height + LOCKUP_GAP_Y + rr.height / 2
+
+      const ax = cx - clubMidX
+      const bx = cx - schMidX
+      const ay = targetClubMidY - clubMidY
+      const by = targetSchMidY - schMidY
 
       return {
         mobile: true,
-        ax: dx,
+        ax,
         ay,
-        bx: dx,
+        bx,
         by,
       }
     }
@@ -193,7 +209,7 @@ export function SplitWordmarkLayout({
         document.documentElement.style.setProperty('--home-intro-decor-opacity', '0')
         setIntroProgress?.(0)
 
-        const introScale = mobile ? 1.12 : 1.22
+        const introScale = mobile ? 1.1 : 1.22
         gsap.set(leftShift, { x: ax, y: ay, scale: introScale })
         gsap.set(rightShift, { x: bx, y: by, scale: introScale })
 
@@ -202,7 +218,7 @@ export function SplitWordmarkLayout({
           scrollTrigger: {
             scroller: el,
             start: 'top top',
-            end: () => `+=${introEndDistancePx()}`,
+            end: () => `+=${introEndDistancePx(mobile)}`,
             scrub: 1.25,
             invalidateOnRefresh: true,
             onUpdate(self) {
@@ -278,6 +294,7 @@ export function SplitWordmarkLayout({
       introCtx?.revert()
       introCtx = null
       document.documentElement.style.removeProperty('--home-intro-decor-opacity')
+      shell.style.removeProperty('--sch-baseline-nudge')
     }
   }, [cinematicIntro, setIntroProgress])
 
@@ -304,16 +321,18 @@ export function SplitWordmarkLayout({
         </div>
       </div>
       <div className="split-hero-side split-hero-side--right" aria-hidden="true">
-        <div ref={rightShiftRef} className="split-hero-wordmark-shift">
-          <Image
-            className="split-hero-wordmark"
-            src="/brand/schorle.png"
-            alt=""
-            width={1400}
-            height={260}
-            priority
-            onLoadingComplete={refreshScrollTriggersSoon}
-          />
+        <div className="split-hero-baseline-anchor split-hero-baseline-anchor--sch">
+          <div ref={rightShiftRef} className="split-hero-wordmark-shift">
+            <Image
+              className="split-hero-wordmark"
+              src="/brand/schorle.png"
+              alt=""
+              width={1400}
+              height={260}
+              priority
+              onLoadingComplete={refreshScrollTriggersSoon}
+            />
+          </div>
         </div>
       </div>
 
