@@ -1,6 +1,7 @@
 'use client'
 
 import Navigation from '@/components/Navigation'
+import { HomeIntroScrollProvider } from '@/components/HomeIntroScrollContext'
 import { PageWrapper } from '@/components/PageWrapper'
 import { SplitWordmarkLayout } from '@/components/SplitWordmarkLayout'
 import { EditorialSection } from '@/components/editorial/EditorialSection'
@@ -9,10 +10,10 @@ import { HandWrittenText, WobblyUnderline, CircledText, Checkmark, InkCircle } f
 
 export default function Home() {
   return (
-    <>
+    <HomeIntroScrollProvider>
       <Navigation />
-      <PageWrapper>
-        <SplitWordmarkLayout>
+      <PageWrapper disableMountFade>
+        <SplitWordmarkLayout cinematicIntro>
           <div style={{ padding: '60px 48px 20px', position: 'relative' }}>
             <div
               style={{
@@ -255,6 +256,6 @@ export default function Home() {
           </div>
         </SplitWordmarkLayout>
       </PageWrapper>
-    </>
+    </HomeIntroScrollProvider>
   )
 }

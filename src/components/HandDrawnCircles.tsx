@@ -17,10 +17,9 @@ interface HandDrawnCircleProps {
   pathIndex?: number;
   opacity?: number;
   className?: string;
-  animate?: boolean;
 }
 
-export function HandDrawnCircle({ size = 100, pathIndex = 0, opacity = 1, className = "", animate = false }: HandDrawnCircleProps) {
+export function HandDrawnCircle({ size = 100, pathIndex = 0, opacity = 1, className = '' }: HandDrawnCircleProps) {
   return (
     <svg
       width={size}
@@ -28,9 +27,8 @@ export function HandDrawnCircle({ size = 100, pathIndex = 0, opacity = 1, classN
       viewBox="0 0 100 100"
       fill="none"
       className={className}
-      style={{ 
+      style={{
         opacity,
-        animation: animate ? `floatingBubble 6s ease-in-out infinite` : undefined
       }}
     >
       <path

@@ -2,9 +2,22 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import { LogoWithCircle } from './HandDrawnCircles'
+import { usePathname } from 'next/navigation'
+import { useHomeIntroProgress } from '@/components/HomeIntroScrollContext'
+
+function navRevealFromProgress(progress: number) {
+  return Math.min(1, Math.max(0, (progress - 0.004) / 0.14))
+}
 
 export default function Navigation() {
+  const pathname = usePathname()
+  const introProgress = useHomeIntroProgress()
+  const homeCinematicNav = pathname === '/' && introProgress !== null
+
+  const reveal = homeCinematicNav ? navRevealFromProgress(introProgress) : 1
+  const navOpacity = reveal
+  const navTranslateY = homeCinematicNav ? (1 - reveal) * -14 : 0
+
   const [open, setOpen] = useState(false)
 
   useEffect(() => {
@@ -35,17 +48,18 @@ export default function Navigation() {
         zIndex: 100,
         padding: '24px 48px',
         display: 'flex',
-        justifyContent: 'space-between',
+        justifyContent: 'flex-end',
         alignItems: 'center',
-        background: 'rgba(245, 242, 236, 0.85)',
-        backdropFilter: 'blur(8px)',
-        borderBottom: '1px solid rgba(13, 12, 10, 0.08)',
+        gap: '48px',
+        background: `rgba(245, 242, 236, ${0.85 * navOpacity})`,
+        backdropFilter: navOpacity > 0.08 ? 'blur(8px)' : 'none',
+        borderBottom: `1px solid rgba(13, 12, 10, ${0.08 * navOpacity})`,
+        opacity: navOpacity,
+        transform: `translateY(${navTranslateY}px)`,
+        pointerEvents: homeCinematicNav && reveal < 0.03 ? 'none' : 'auto',
+        transition: homeCinematicNav ? 'none' : 'opacity 0.25s ease, transform 0.25s ease',
       }}
     >
-      <Link href="/" style={{ textDecoration: 'none', color: 'inherit' }}>
-        <LogoWithCircle />
-      </Link>
-
       <div className="site-nav-links" style={{ display: 'flex', gap: '48px' }}>
         {[
           { label: 'Works', href: '/works' },
