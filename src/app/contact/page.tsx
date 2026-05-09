@@ -344,7 +344,7 @@ export default function Contact() {
                   }}
                 >
                   <div style={{ marginBottom: '12px' }}>✓</div>
-                  <div>Message received. We'll be in touch soon.</div>
+                  <div>Message received. We&apos;ll be in touch soon.</div>
                 </div>
               )}
             </div>
@@ -363,7 +363,7 @@ export default function Contact() {
                 marginBottom: '16px',
               }}
             >
-              We're always listening.
+              We&apos;re always listening.
             </div>
             <div
               style={{

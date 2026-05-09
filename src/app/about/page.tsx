@@ -3,7 +3,7 @@
 import Navigation from '@/components/Navigation'
 import { PageWrapper } from '@/components/PageWrapper'
 import { PlaceholderImage } from '@/components/PlaceholderImage'
-import { HandWrittenText, StrikeThroughText, CircledText, Checkmark, InkCircle, WobblyUnderline } from '@/components/Annotations'
+import { HandWrittenText, StrikeThroughText } from '@/components/Annotations'
 
 export default function About() {
   return (
@@ -188,7 +188,7 @@ export default function About() {
                   color: 'rgba(13, 12, 10, 0.5)',
                 }}
               >
-                Interested in collaborating? We're always looking for co-conspirators.
+                Interested in collaborating? We&apos;re always looking for co-conspirators.
               </div>
             </div>
           </div>

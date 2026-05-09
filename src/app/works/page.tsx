@@ -2,7 +2,6 @@
 
 import Navigation from '@/components/Navigation'
 import { PageWrapper } from '@/components/PageWrapper'
-import { GlossaryDefinition } from '@/components/GlossaryDefinition'
 import { PlaceholderImage } from '@/components/PlaceholderImage'
 import { CircledText, HandWrittenText, Checkmark, InkCircle, WobblyUnderline } from '@/components/Annotations'
 

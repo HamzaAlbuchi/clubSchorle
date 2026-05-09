@@ -84,7 +84,7 @@ export default function Home() {
               <Checkmark x={190} y={-20} size={16} />
             </div>
 
-            <div style={{ position: 'absolute', top: '180px', right: '60px', position: 'relative' }}>
+            <div style={{ position: 'absolute', top: '180px', right: '60px' }}>
               <GlossaryDefinition
                 number="03"
                 word="FETISH"
