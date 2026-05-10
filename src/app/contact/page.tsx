@@ -60,14 +60,44 @@ export default function Contact() {
     email: '',
     message: '',
   })
-  const [submitted, setSubmitted] = useState(false)
+  /** Honeypot — leave empty */
+  const [hp, setHp] = useState('')
+  const [loading, setLoading] = useState(false)
+  const [feedback, setFeedback] = useState<null | 'success' | 'error'>(null)
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
-    if (formData.name && formData.email && formData.message) {
-      setSubmitted(true)
-      setFormData({ name: '', email: '', message: '' })
-      setTimeout(() => setSubmitted(false), 3000)
+    if (loading) return
+    const name = formData.name.trim()
+    const email = formData.email.trim()
+    const message = formData.message.trim()
+    if (!name || !email || !message) return
+
+    setLoading(true)
+    setFeedback(null)
+    try {
+      const res = await fetch('/api/contact', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, email, message, _hp: hp }),
+      })
+      let data: { ok?: boolean } = {}
+      try {
+        data = (await res.json()) as { ok?: boolean }
+      } catch {
+        data = {}
+      }
+      if (res.ok && data.ok) {
+        setFormData({ name: '', email: '', message: '' })
+        setHp('')
+        setFeedback('success')
+      } else {
+        setFeedback('error')
+      }
+    } catch {
+      setFeedback('error')
+    } finally {
+      setLoading(false)
     }
   }
 
@@ -183,10 +213,25 @@ export default function Contact() {
               <section className="contact-page__col contact-page__col--form">
                 <div style={LABEL_SECTION}>03 · Message</div>
 
-                {!submitted ? (
+                {feedback === 'success' ? (
+                  <div aria-live="polite">
+                    <p className="contact-page__feedback" style={{ marginTop: 0 }}>
+                      Message sent.
+                    </p>
+                    <button
+                      type="button"
+                      className="contact-page__again"
+                      onClick={() => setFeedback(null)}
+                    >
+                      Send another
+                    </button>
+                  </div>
+                ) : (
                   <form
                     onSubmit={handleSubmit}
+                    aria-busy={loading}
                     style={{
+                      position: 'relative',
                       display: 'flex',
                       flexDirection: 'column',
                       gap: '24px',
@@ -195,6 +240,19 @@ export default function Contact() {
                       minWidth: 0,
                     }}
                   >
+                    <div className="contact-page__hp-wrap" aria-hidden="true">
+                      <label htmlFor="contact-company">Company</label>
+                      <input
+                        id="contact-company"
+                        name="company"
+                        type="text"
+                        tabIndex={-1}
+                        autoComplete="off"
+                        value={hp}
+                        onChange={(e) => setHp(e.target.value)}
+                      />
+                    </div>
+
                     <div style={{ width: '100%', minWidth: 0 }}>
                       <label htmlFor="contact-name" style={LABEL_UPPER}>
                         Name
@@ -206,8 +264,12 @@ export default function Contact() {
                         autoComplete="name"
                         className="contact-page__field-input"
                         value={formData.name}
+                        disabled={loading}
                         onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                        style={FIELD_LINE}
+                        style={{
+                          ...FIELD_LINE,
+                          ...(loading ? { opacity: 0.55, cursor: 'not-allowed' } : {}),
+                        }}
                         onFocus={(e) => (e.currentTarget.style.borderBottomColor = 'rgba(13, 12, 10, 0.5)')}
                         onBlur={(e) => (e.currentTarget.style.borderBottomColor = 'rgba(13, 12, 10, 0.2)')}
                       />
@@ -222,10 +284,15 @@ export default function Contact() {
                         name="email"
                         type="email"
                         autoComplete="email"
+                        inputMode="email"
                         className="contact-page__field-input"
                         value={formData.email}
+                        disabled={loading}
                         onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                        style={FIELD_LINE}
+                        style={{
+                          ...FIELD_LINE,
+                          ...(loading ? { opacity: 0.55, cursor: 'not-allowed' } : {}),
+                        }}
                         onFocus={(e) => (e.currentTarget.style.borderBottomColor = 'rgba(13, 12, 10, 0.5)')}
                         onBlur={(e) => (e.currentTarget.style.borderBottomColor = 'rgba(13, 12, 10, 0.2)')}
                       />
@@ -240,12 +307,14 @@ export default function Contact() {
                         name="message"
                         className="contact-page__textarea"
                         value={formData.message}
+                        disabled={loading}
                         onChange={(e) => setFormData({ ...formData, message: e.target.value })}
                         style={{
                           ...FIELD_LINE,
                           minHeight: '120px',
                           resize: 'vertical',
                           lineHeight: 1.5,
+                          ...(loading ? { opacity: 0.55, cursor: 'not-allowed' } : {}),
                         }}
                         onFocus={(e) => (e.currentTarget.style.borderBottomColor = 'rgba(13, 12, 10, 0.5)')}
                         onBlur={(e) => (e.currentTarget.style.borderBottomColor = 'rgba(13, 12, 10, 0.2)')}
@@ -255,6 +324,7 @@ export default function Contact() {
                     <button
                       type="submit"
                       className="contact-page__submit"
+                      disabled={loading}
                       style={{
                         marginTop: '16px',
                         padding: '8px 0',
@@ -263,39 +333,40 @@ export default function Contact() {
                         fontWeight: 300,
                         letterSpacing: '0.08em',
                         textTransform: 'uppercase',
-                        color: '#0D0C0A',
+                        color: loading ? 'rgba(13, 12, 10, 0.45)' : '#0D0C0A',
                         background: 'transparent',
                         border: 'none',
                         borderBottom: '1px solid rgba(13, 12, 10, 0.3)',
-                        cursor: 'pointer',
-                        transition: 'all 0.2s',
+                        cursor: loading ? 'wait' : 'pointer',
+                        transition: 'color 0.2s, border-color 0.2s, opacity 0.2s',
                         boxSizing: 'border-box',
+                        opacity: loading ? 0.65 : 1,
                       }}
                       onMouseEnter={(e) => {
+                        if (loading) return
                         e.currentTarget.style.color = 'rgba(13, 12, 10, 0.7)'
                         e.currentTarget.style.borderBottomColor = 'rgba(13, 12, 10, 0.7)'
                       }}
                       onMouseLeave={(e) => {
+                        if (loading) return
                         e.currentTarget.style.color = '#0D0C0A'
                         e.currentTarget.style.borderBottomColor = 'rgba(13, 12, 10, 0.3)'
                       }}
                     >
-                      Send
+                      {loading ? 'Sending…' : 'Send'}
                     </button>
+
+                    {feedback === 'error' ? (
+                      <p
+                        className="contact-page__feedback contact-page__feedback--error"
+                        role="status"
+                        aria-live="polite"
+                        style={{ marginTop: 4 }}
+                      >
+                        Something went wrong.
+                      </p>
+                    ) : null}
                   </form>
-                ) : (
-                  <div
-                    style={{
-                      fontSize: 'clamp(11px, 3.5vw, 12px)',
-                      fontFamily: 'var(--font-dm-mono)',
-                      fontWeight: 300,
-                      color: 'rgba(13, 12, 10, 0.7)',
-                      lineHeight: 1.6,
-                    }}
-                  >
-                    <div style={{ marginBottom: '12px' }}>✓</div>
-                    <div>Message received. We&apos;ll be in touch soon.</div>
-                  </div>
                 )}
               </section>
             </div>
