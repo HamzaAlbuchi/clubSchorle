@@ -205,6 +205,23 @@ body {
 
   .split-hero-morph-type {
     font-size: clamp(20px, 9.2vw, 34px);
+    letter-spacing: -0.02em;
+  }
+
+  .split-hero-shell--coming-soon.split-hero-shell--cinematic .split-hero-side--left {
+    left: max(clamp(28px, 6vw, 56px), env(safe-area-inset-left, 0px));
+    right: auto;
+    display: flex;
+    justify-content: flex-start;
+    align-items: flex-start;
+  }
+
+  .split-hero-shell--coming-soon.split-hero-shell--cinematic .split-hero-side--right {
+    left: auto;
+    right: max(clamp(28px, 6vw, 56px), env(safe-area-inset-right, 0px));
+    display: flex;
+    justify-content: flex-end;
+    align-items: flex-end;
   }
 
   .split-hero-center-scroll {
@@ -212,6 +229,143 @@ body {
     padding-right: max(18px, env(safe-area-inset-right, 0px));
     padding-top: clamp(96px, 26vw, 132px);
     padding-bottom: clamp(104px, 28vw, 140px);
+  }
+}
+
+/* Contact page: hide fixed split rails below tablet; center column owns width */
+@media (max-width: 768px) {
+  .split-hero-shell--contact-page {
+    overflow-x: hidden;
+  }
+
+  .split-hero-shell--contact-page .split-hero-side {
+    display: none !important;
+  }
+
+  .split-hero-shell--contact-page .split-hero-center-scroll {
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+    overflow-x: hidden;
+    padding-left: max(20px, env(safe-area-inset-left, 0px));
+    padding-right: max(20px, env(safe-area-inset-right, 0px));
+    padding-top: max(16px, env(safe-area-inset-top, 0px));
+    padding-bottom: max(28px, env(safe-area-inset-bottom, 0px));
+  }
+}
+
+/* ----- Contact page content ----- */
+.contact-page {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
+  box-sizing: border-box;
+  padding: 60px 48px;
+}
+
+.contact-page__rail {
+  display: none;
+}
+
+.contact-page__wordmark-img {
+  display: block;
+  width: auto;
+  max-width: 100%;
+  height: clamp(36px, 11vw, 54px);
+  mix-blend-mode: multiply;
+  opacity: 0.92;
+}
+
+.contact-page__rail--schorle .contact-page__wordmark-img {
+  height: clamp(32px, 10vw, 48px);
+}
+
+.contact-page__two-col {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 120px;
+  max-width: 900px;
+  margin-bottom: 180px;
+}
+
+.contact-page__detail-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+  max-width: 200px;
+}
+
+.contact-page__mailto {
+  word-break: break-word;
+}
+
+.contact-page__field-input,
+.contact-page__textarea {
+  box-sizing: border-box;
+  max-width: 100%;
+}
+
+.contact-page__textarea {
+  resize: vertical;
+  min-height: 120px;
+}
+
+@media (max-width: 768px) {
+  .contact-page {
+    padding: 0;
+  }
+
+  .contact-page__rail {
+    display: block;
+  }
+
+  .contact-page__intro--desktop {
+    display: none !important;
+  }
+
+  .contact-page__two-col {
+    grid-template-columns: 1fr;
+    gap: clamp(48px, 11vw, 72px);
+    max-width: 100%;
+    width: 100%;
+    margin-bottom: clamp(56px, 14vw, 96px);
+  }
+
+  .contact-page__detail-stack {
+    max-width: none;
+    width: 100%;
+  }
+
+  .contact-page__rail--club {
+    margin-bottom: clamp(36px, 9vw, 52px);
+  }
+
+  .contact-page__rail--schorle {
+    margin-top: clamp(48px, 12vw, 72px);
+    margin-bottom: clamp(40px, 10vw, 64px);
+  }
+
+  .contact-page__textarea {
+    min-height: 140px;
+  }
+
+  .contact-page__submit {
+    width: 100%;
+    box-sizing: border-box;
+    padding-top: 14px !important;
+    padding-bottom: 14px !important;
+    text-align: center;
+  }
+
+  .contact-page__outro {
+    max-width: 100% !important;
+  }
+
+  .contact-page__footer {
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+    padding-top: clamp(40px, 10vw, 64px) !important;
+    padding-bottom: clamp(28px, 9vw, 48px) !important;
   }
 }
 
@@ -375,7 +529,7 @@ body {
   font-style: normal;
   font-size: clamp(26px, 4.8vw, 72px);
   line-height: 1;
-  letter-spacing: 0.42em;
+  letter-spacing: -0.02em;
   text-transform: uppercase;
   color: #0d0c0a;
   opacity: 0;
@@ -388,6 +542,32 @@ body {
   mix-blend-mode: multiply;
 }
 
+/* Final-state pillars: inset from viewport edges, COMING/SOON anchored to side walls (not centered on wide PNG boxes). */
+@media (min-width: 641px) {
+  .split-hero-shell--coming-soon.split-hero-shell--cinematic .split-hero-side--left {
+    left: clamp(44px, 7vw, 112px);
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+  }
+
+  .split-hero-shell--coming-soon.split-hero-shell--cinematic .split-hero-side--right {
+    right: clamp(44px, 7vw, 112px);
+    left: auto;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+  }
+}
+
+.split-hero-shell--coming-soon .split-hero-side--left .split-hero-morph-type-outer {
+  justify-content: flex-start;
+}
+
+.split-hero-shell--coming-soon .split-hero-side--right .split-hero-morph-type-outer {
+  justify-content: flex-end;
+}
+
 .split-hero-shell--coming-soon .split-hero-morph-ink {
   will-change: opacity, filter, transform;
 }
@@ -396,7 +576,7 @@ body {
 .coming-soon-scroll-body {
   min-height: 175vh;
   width: 100%;
-  pointer-events: none;
+  pointer-events: auto;
 }
 
 /* Animations */

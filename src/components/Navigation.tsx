@@ -25,15 +25,15 @@ const navLinkStyle = {
 export default function Navigation() {
   const pathname = usePathname()
   const introProgress = useHomeIntroProgress()
-  /** Only fade the bar with scroll when multiple links exist; single-link (e.g. Contact-only) stays visible. */
-  const homeCinematicNav =
-    pathname === '/' && introProgress !== null && NAV_LINKS.length > 1
-
-  const reveal = homeCinematicNav ? navRevealFromProgress(introProgress) : 1
-  const navOpacity = reveal
-  const navTranslateY = homeCinematicNav ? (1 - reveal) * -14 : 0
-
   const [open, setOpen] = useState(false)
+
+  /** Home landing: nav fully hidden at rest; chrome + title + links fade in with intro scroll. */
+  const homeCinematicNav = pathname === '/' && introProgress !== null
+
+  const revealFromScroll = homeCinematicNav ? navRevealFromProgress(introProgress) : 1
+  /** Keep chrome usable while drawer is open even if user scrolled little. */
+  const barReveal = open ? 1 : revealFromScroll
+  const navChromeTranslate = homeCinematicNav ? (1 - barReveal) * -14 : 0
 
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
@@ -52,6 +52,12 @@ export default function Navigation() {
     }
   }, [open])
 
+  const baseNavChrome = {
+    background: 'rgba(245, 242, 236, 0.85)' as const,
+    backdropFilter: 'blur(8px)' as const,
+    borderBottom: '1px solid rgba(13, 12, 10, 0.08)' as const,
+  }
+
   return (
     <nav
       className="site-nav"
@@ -66,20 +72,51 @@ export default function Navigation() {
         justifyContent: 'space-between',
         alignItems: 'center',
         gap: '48px',
-        background: `rgba(245, 242, 236, ${0.85 * navOpacity})`,
-        backdropFilter: navOpacity > 0.08 ? 'blur(8px)' : 'none',
-        borderBottom: `1px solid rgba(13, 12, 10, ${0.08 * navOpacity})`,
-        opacity: navOpacity,
-        transform: `translateY(${navTranslateY}px)`,
-        pointerEvents: homeCinematicNav && reveal < 0.03 ? 'none' : 'auto',
-        transition: homeCinematicNav ? 'none' : 'opacity 0.25s ease, transform 0.25s ease',
+        ...(homeCinematicNav
+          ? {
+              background: 'transparent',
+              borderBottom: 'none',
+              backdropFilter: 'none',
+            }
+          : baseNavChrome),
+        pointerEvents: 'auto',
       }}
     >
+      {homeCinematicNav ? (
+        <div
+          className="site-nav-chrome"
+          aria-hidden
+          style={{
+            position: 'absolute',
+            inset: 0,
+            zIndex: 0,
+            pointerEvents: 'none',
+            background: `rgba(245, 242, 236, ${0.85 * barReveal})`,
+            backdropFilter: barReveal > 0.08 ? 'blur(8px)' : 'none',
+            borderBottom: `1px solid rgba(13, 12, 10, ${0.08 * barReveal})`,
+            opacity: barReveal,
+            transform: `translateY(${navChromeTranslate}px)`,
+            transition: 'none',
+          }}
+        />
+      ) : null}
+
       <Link
         href="/"
+        tabIndex={homeCinematicNav && barReveal < 0.03 ? -1 : undefined}
         style={{
           ...navLinkStyle,
+          position: 'relative',
+          zIndex: 1,
           ...(pathname === '/' ? { color: 'rgba(13, 12, 10, 0.42)' } : {}),
+          ...(homeCinematicNav
+            ? {
+                opacity: barReveal,
+                transform: `translateY(${navChromeTranslate}px)`,
+                transition: 'none',
+                pointerEvents: barReveal < 0.03 ? 'none' : 'auto',
+              }
+            : {}),
         }}
         aria-current={pathname === '/' ? 'page' : undefined}
         onMouseEnter={(e) => (e.currentTarget.style.color = 'rgba(13, 12, 10, 1)')}
@@ -90,7 +127,24 @@ export default function Navigation() {
         Club Schorle
       </Link>
 
-      <div className="site-nav-links" style={{ display: 'flex', gap: '48px', marginLeft: 'auto' }}>
+      <div
+        className="site-nav-links"
+        style={{
+          display: 'flex',
+          gap: '48px',
+          marginLeft: 'auto',
+          position: 'relative',
+          zIndex: 1,
+          ...(homeCinematicNav
+            ? {
+                opacity: barReveal,
+                transform: `translateY(${navChromeTranslate}px)`,
+                transition: 'none',
+                pointerEvents: barReveal < 0.03 ? 'none' : 'auto',
+              }
+            : {}),
+        }}
+      >
         {NAV_LINKS.map((link) => (
           <Link
             key={link.href}
@@ -124,6 +178,16 @@ export default function Navigation() {
           padding: '10px 10px',
           cursor: 'pointer',
           color: '#0D0C0A',
+          position: 'relative',
+          zIndex: 1,
+          ...(homeCinematicNav
+            ? {
+                opacity: barReveal,
+                transform: `translateY(${navChromeTranslate}px)`,
+                transition: 'none',
+                pointerEvents: barReveal < 0.03 ? 'none' : 'auto',
+              }
+            : {}),
         }}
       >
         <div

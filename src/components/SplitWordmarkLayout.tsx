@@ -93,10 +93,13 @@ export function SplitWordmarkLayout({
   children,
   cinematicIntro = false,
   comingSoon = false,
+  contactPage = false,
 }: {
   children: React.ReactNode
   cinematicIntro?: boolean
   comingSoon?: boolean
+  /** Below-tablet: hide fixed CLUB/SCHORLE rails; stack editorial content in one column (contact). */
+  contactPage?: boolean
 }) {
   const shellRef = useRef<HTMLDivElement>(null)
   const scrollerRef = useRef<HTMLDivElement>(null)
@@ -172,7 +175,7 @@ export function SplitWordmarkLayout({
         const rt = rightShift.querySelector<HTMLElement>('.split-hero-morph-type')
         if (li && lt && ri && rt) {
           gsap.set([li, ri], { opacity: 0, filter: 'none' })
-          gsap.set([lt, rt], { opacity: 1, filter: 'none', letterSpacing: '0.05em' })
+          gsap.set([lt, rt], { opacity: 1, filter: 'none', letterSpacing: '-0.02em' })
         }
       }
       setIntroProgress?.(1)
@@ -385,8 +388,8 @@ export function SplitWordmarkLayout({
         const morphReady = !!(leftInk && leftType && rightInk && rightType)
         if (comingSoon && morphReady) {
           gsap.set([leftType, rightType], { opacity: 0, filter: 'blur(14px)' })
-          gsap.set(leftType, { letterSpacing: '0.44em' })
-          gsap.set(rightType, { letterSpacing: '0.58em' })
+          gsap.set(leftType, { letterSpacing: '0.02em' })
+          gsap.set(rightType, { letterSpacing: '0.02em' })
           gsap.set([leftInk, rightInk], { opacity: 1, filter: 'blur(0px)', scale: 1 })
         }
 
@@ -394,6 +397,8 @@ export function SplitWordmarkLayout({
           defaults: { ease: 'none', duration: 1 },
           scrollTrigger: {
             scroller: el,
+            // Must not default trigger to the veil (fixed): it never moves with scrollTop — scrub breaks.
+            trigger: reveal,
             start: 'top top',
             end: () => `+=${scrollInteractionDistancePx(mobile, comingSoon)}`,
             scrub: mobile ? 2.15 : 1.55,
@@ -476,7 +481,7 @@ export function SplitWordmarkLayout({
               {
                 opacity: 1,
                 filter: 'blur(0px)',
-                letterSpacing: '0.045em',
+                letterSpacing: '-0.03em',
                 duration: 0.52,
                 ease: 'power2.out',
               },
@@ -498,7 +503,7 @@ export function SplitWordmarkLayout({
               {
                 opacity: 1,
                 filter: 'blur(0px)',
-                letterSpacing: '0.08em',
+                letterSpacing: '-0.03em',
                 duration: 0.52,
                 ease: 'power2.out',
               },
@@ -549,6 +554,7 @@ export function SplitWordmarkLayout({
   const shellClass = [
     cinematicIntro ? 'split-hero-shell split-hero-shell--cinematic' : 'split-hero-shell',
     comingSoon ? 'split-hero-shell--coming-soon' : '',
+    contactPage ? 'split-hero-shell--contact-page' : '',
   ]
     .filter(Boolean)
     .join(' ')
