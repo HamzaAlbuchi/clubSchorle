@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import { Cormorant, DM_Mono, Kalam } from 'next/font/google'
+import '@fontsource/host-grotesk/500.css'
 import './globals.css'
 
 const cormorant = Cormorant({

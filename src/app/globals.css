@@ -370,8 +370,8 @@ body {
   left: auto;
   top: auto;
   transform: none;
-  font-family: var(--font-cormorant), serif;
-  font-weight: 600;
+  font-family: 'Host Grotesk', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-weight: 500;
   font-style: normal;
   font-size: clamp(26px, 4.8vw, 72px);
   line-height: 1;

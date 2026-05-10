@@ -11,6 +11,17 @@ function navRevealFromProgress(progress: number) {
 
 const NAV_LINKS = [{ label: 'Contact', href: '/contact' as const }]
 
+const navLinkStyle = {
+  fontSize: '9px',
+  fontFamily: 'var(--font-dm-mono)',
+  fontWeight: 300,
+  letterSpacing: '0.08em',
+  textTransform: 'uppercase' as const,
+  color: 'rgba(13, 12, 10, 0.5)',
+  textDecoration: 'none',
+  transition: 'color 0.2s',
+}
+
 export default function Navigation() {
   const pathname = usePathname()
   const introProgress = useHomeIntroProgress()
@@ -52,7 +63,7 @@ export default function Navigation() {
         zIndex: 100,
         padding: '24px 48px',
         display: 'flex',
-        justifyContent: 'flex-end',
+        justifyContent: 'space-between',
         alignItems: 'center',
         gap: '48px',
         background: `rgba(245, 242, 236, ${0.85 * navOpacity})`,
@@ -64,23 +75,36 @@ export default function Navigation() {
         transition: homeCinematicNav ? 'none' : 'opacity 0.25s ease, transform 0.25s ease',
       }}
     >
-      <div className="site-nav-links" style={{ display: 'flex', gap: '48px' }}>
+      <Link
+        href="/"
+        style={{
+          ...navLinkStyle,
+          ...(pathname === '/' ? { color: 'rgba(13, 12, 10, 0.42)' } : {}),
+        }}
+        aria-current={pathname === '/' ? 'page' : undefined}
+        onMouseEnter={(e) => (e.currentTarget.style.color = 'rgba(13, 12, 10, 1)')}
+        onMouseLeave={(e) =>
+          (e.currentTarget.style.color = pathname === '/' ? 'rgba(13, 12, 10, 0.42)' : 'rgba(13, 12, 10, 0.5)')
+        }
+      >
+        Club Schorle
+      </Link>
+
+      <div className="site-nav-links" style={{ display: 'flex', gap: '48px', marginLeft: 'auto' }}>
         {NAV_LINKS.map((link) => (
           <Link
             key={link.href}
             href={link.href}
             style={{
-              fontSize: '9px',
-              fontFamily: 'var(--font-dm-mono)',
-              fontWeight: 300,
-              letterSpacing: '0.08em',
-              textTransform: 'uppercase',
-              color: 'rgba(13, 12, 10, 0.5)',
-              textDecoration: 'none',
-              transition: 'color 0.2s',
+              ...navLinkStyle,
+              ...(pathname === link.href ? { color: 'rgba(13, 12, 10, 0.85)' } : {}),
             }}
+            aria-current={pathname === link.href ? 'page' : undefined}
             onMouseEnter={(e) => (e.currentTarget.style.color = 'rgba(13, 12, 10, 1)')}
-            onMouseLeave={(e) => (e.currentTarget.style.color = 'rgba(13, 12, 10, 0.5)')}
+            onMouseLeave={(e) =>
+              (e.currentTarget.style.color =
+                pathname === link.href ? 'rgba(13, 12, 10, 0.85)' : 'rgba(13, 12, 10, 0.5)')
+            }
           >
             {link.label}
           </Link>
@@ -136,6 +160,24 @@ export default function Navigation() {
           }}
           onClick={() => setOpen(false)}
         >
+          <Link
+            href="/"
+            onClick={(e) => {
+              e.stopPropagation()
+              setOpen(false)
+            }}
+            style={{
+              fontSize: '20px',
+              fontFamily: 'var(--font-cormorant)',
+              fontWeight: 300,
+              fontStyle: 'italic',
+              letterSpacing: '0.02em',
+              color: pathname === '/' ? 'rgba(13, 12, 10, 0.35)' : '#0D0C0A',
+              textDecoration: 'none',
+            }}
+          >
+            Club Schorle
+          </Link>
           {NAV_LINKS.map((link) => (
             <Link
               key={link.href}
