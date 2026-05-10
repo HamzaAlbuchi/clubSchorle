@@ -94,7 +94,7 @@ export default function Contact() {
                     Email
                   </div>
                   <a
-                    href="mailto:hello@clubschorle.de"
+                    href="mailto:clubschorle@gmail.com"
                     style={{
                       fontSize: '12px',
                       fontFamily: 'var(--font-dm-mono)',
@@ -108,7 +108,7 @@ export default function Contact() {
                     onMouseEnter={(e) => (e.currentTarget.style.color = '#0D0C0A')}
                     onMouseLeave={(e) => (e.currentTarget.style.color = 'rgba(13, 12, 10, 0.7)')}
                   >
-                    hello@clubschorle.de
+                    clubschorle@gmail.com
                   </a>
                 </div>
 
