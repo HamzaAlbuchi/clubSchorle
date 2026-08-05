@@ -282,9 +282,9 @@ body {
 
 .contact-page__two-col {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 120px;
-  max-width: 900px;
+  grid-template-columns: 1fr;
+  gap: 48px;
+  max-width: 520px;
   margin-bottom: 180px;
 }
 
